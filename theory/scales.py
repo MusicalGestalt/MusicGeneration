@@ -1,21 +1,32 @@
 """Tools for generating scales."""
-
+import functools
 import sys
 tone = 2
 semitone = 1
+middleC = 60
 
-chromatic_scale = ["A", "A#", "B", 
-    "C", "C#", "D", "D#", "E", 
-    "F", "F#", "G", "G#"]
+def note_for_semitones(num):
+    """0 = C-1. 1=C#/Db0, 60=C4, etc."""
+    notes = ["B#/C", "C#/Db", "D", "D#/Eb", "E", "E#/F", 
+        "F#/Gb", "G", "G#/Ab", "A", "A#/Bb", "B/Cb"]
+    note = num % 12
+    octave = num // 12 - 1
+    return "{0}{1}".format(notes[note],octave)
 
-major_intervals = [tone, tone, semitone, tone, tone, tone, semitone]
-natural_minor_intervals = [tone, semitone, tone, tone, semitone, tone, tone]
-harmonic_minor_intervals = [tone, semitone, tone, tone, semitone, tone.5, semitone]
-dorian_mode_intervals = [tone,semitone,tone,tone,tone,semitone,tone]
-lydian_mode_intervals = [tone,tone,tone,semitone,tone,tone,semitone]
-mixolydian_mode_intervals = [tone,tone,semitone,tone,tone,semitone,tone]
-aeolian_mode_intervals = [tone,semitone,tone,tone,semitone,tone,tone]
-locrian_mode_intervals = [semitone,tone,tone,semitone,tone,tone,tone]
+def notes_for_list(l):
+    return list(map(note_for_semitones, l))
+
+
+
+major_intervals = [0, tone, tone, semitone, tone, tone, tone, semitone]
+natural_minor_intervals = [0, tone, semitone, tone, tone, semitone, tone, tone]
+harmonic_minor_intervals = [0, tone, semitone, tone, tone, semitone, tone, semitone]
+dorian_mode_intervals = [0, tone,semitone,tone,tone,tone,semitone,tone]
+lydian_mode_intervals = [0, tone,tone,tone,semitone,tone,tone,semitone]
+mixolydian_mode_intervals = [0, tone,tone,semitone,tone,tone,semitone,tone]
+aeolian_mode_intervals = [0, tone,semitone,tone,tone,semitone,tone,tone]
+locrian_mode_intervals = [0, semitone,tone,tone,semitone,tone,tone,tone]
+chromatic_scale_intervals = [semitone for _ in range(12)]
 
 _intervals = dict(
     major=major_intervals,
@@ -25,43 +36,25 @@ _intervals = dict(
     lydian_mode=lydian_mode_intervals,
     mixolydian_mode=mixolydian_mode_intervals,
     aeolian_mode=aeolian_mode_intervals,
-    locrian_mode=locrian_mode_intervals
+    locrian_mode=locrian_mode_intervals,
+    chromatic=chromatic_scale_intervals
     )
-
-
-def sharpify(note):
-    """For simplicity in defining a scale, we're not going to use flats.
-    Sharpify removes flats from a note and replaces it with the same tone,
-    spelled as a #
-
-    >>> sharpify("Bb")
-    'A#'
-    >>> sharpify("C#")
-    'C#'
-    >>> sharpify("D")
-    'D'
-    """
-    if "b" in note:
-        idx = chromatic_scale.index(note[0])
-        return chromatic_scale[idx - 1]
-    return note
 
 def scale(root, intervals):
     """Given a root note and a series of intervals, generate 
     a scale based on them.
 
-    >>> scale("C", major_intervals)
-    ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C', None]
+    >>> scale(60, major_intervals)
+    [60, 62, 64, 65, 67, 69, 71, 72]
+    >>> scale(60, natural_minor_intervals)
+    [60, 62, 63, 65, 67, 68, 70, 72]
     """
-    root = sharpify(root)
-    idx = chromatic_scale.index(root)
-    scale = [root]
-    totalSteps = 0
-    for step in reversed(intervals):
-        totalSteps += step
-        scale += [chromatic_scale[idx+totalSteps]]
-    # scale += [None] #add rests to all scales
-    return list(reversed(scale[1:]))
+    def scalify(accum,x):
+        if len(accum) > 0:
+            return accum + [accum[-1]+x[1]]
+        else:
+            return accum + [x[0] + x[1]]
+    return functools.reduce(scalify, [(root,intv) for intv in intervals], [])
 
 # lift the scales to modules
 _mod = sys.modules[__name__]
@@ -75,7 +68,9 @@ for (name,intvs) in _intervals.items():
         return f
     setattr(_mod, name, curry(name,intvs))
     
-
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 
 
 
