@@ -1,3 +1,7 @@
+"""This models common intervals and chords, 
+thus making it easy to generate "good" sounding
+notes given a starting note."""
+
 from scales import tone, semitone
 import sys
 
@@ -21,7 +25,7 @@ for (name,intv) in common_intervals.items():
     def curry(n, i):
         def f(note):
             return note + i
-        f.__name__ = name
+        f.__name__ = "interval_" + name
         f.__doc__ = "Given a note, return note at " + name
         return f
     setattr(_mod, name, curry(name, intv))
@@ -46,6 +50,12 @@ common_chords = dict(
     )
 
 def chord_for_root(root, chord_tuple):
+    """Given a root node and a chord tuple, 
+    generate all the notes in the chord.
+
+    >>> chord_for_root(60,(P1,M3,P5))
+    (60,64,67)
+    """
     return tuple([f(root) for f in chord_tuple])
 
 for (name, ctuple) in common_chords.items():
