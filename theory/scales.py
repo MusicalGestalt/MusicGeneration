@@ -26,6 +26,8 @@ lydian_mode_intervals = [0, tone,tone,tone,semitone,tone,tone,semitone]
 mixolydian_mode_intervals = [0, tone,tone,semitone,tone,tone,semitone,tone]
 aeolian_mode_intervals = [0, tone,semitone,tone,tone,semitone,tone,tone]
 locrian_mode_intervals = [0, semitone,tone,tone,semitone,tone,tone,tone]
+major_pentatonic_intervals = [0, tone, tone, tone*2,tone]
+minor_pentatonic_intervals = [0, tone + semitone, tone, tone, tone + semitone]
 chromatic_scale_intervals = [semitone for _ in range(12)]
 
 _intervals = dict(
@@ -37,7 +39,9 @@ _intervals = dict(
     mixolydian_mode=mixolydian_mode_intervals,
     aeolian_mode=aeolian_mode_intervals,
     locrian_mode=locrian_mode_intervals,
-    chromatic=chromatic_scale_intervals
+    chromatic=chromatic_scale_intervals,
+    minor_pentatonic=minor_pentatonic_intervals,
+    major_pentatonic=major_pentatonic_intervals
     )
 
 def scale(root, intervals):
