@@ -1,19 +1,21 @@
 """Tools for generating scales."""
 
 import sys
+tone = 2
+semitone = 1
 
 chromatic_scale = ["A", "A#", "B", 
     "C", "C#", "D", "D#", "E", 
     "F", "F#", "G", "G#"]
 
-major_intervals = [1, 1, 0.5, 1, 1, 1, 0.5]
-natural_minor_intervals = [1, 0.5, 1, 1, 0.5, 1, 1]
-harmonic_minor_intervals = [1, 0.5, 1, 1, 0.5, 1.5, 0.5]
-dorian_mode_intervals = [1,0.5,1,1,1,0.5,1]
-lydian_mode_intervals = [1,1,1,0.5,1,1,0.5]
-mixolydian_mode_intervals = [1,1,0.5,1,1,0.5,1]
-aeolian_mode_intervals = [1,0.5,1,1,0.5,1,1]
-locrian_mode_intervals = [0.5,1,1,0.5,1,1,1]
+major_intervals = [tone, tone, semitone, tone, tone, tone, semitone]
+natural_minor_intervals = [tone, semitone, tone, tone, semitone, tone, tone]
+harmonic_minor_intervals = [tone, semitone, tone, tone, semitone, tone.5, semitone]
+dorian_mode_intervals = [tone,semitone,tone,tone,tone,semitone,tone]
+lydian_mode_intervals = [tone,tone,tone,semitone,tone,tone,semitone]
+mixolydian_mode_intervals = [tone,tone,semitone,tone,tone,semitone,tone]
+aeolian_mode_intervals = [tone,semitone,tone,tone,semitone,tone,tone]
+locrian_mode_intervals = [semitone,tone,tone,semitone,tone,tone,tone]
 
 _intervals = dict(
     major=major_intervals,
@@ -56,7 +58,7 @@ def scale(root, intervals):
     scale = [root]
     totalSteps = 0
     for step in reversed(intervals):
-        totalSteps += int(step * -2)
+        totalSteps += step
         scale += [chromatic_scale[idx+totalSteps]]
     # scale += [None] #add rests to all scales
     return list(reversed(scale[1:]))
