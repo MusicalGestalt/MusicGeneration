@@ -1,0 +1,1 @@
+Python scripts for algorithmic music composition. Highly experimental.
