@@ -1,7 +1,7 @@
 """This models common intervals and chords, 
 thus making it easy to generate "good" sounding
 notes given a starting note."""
-
+import functools
 from scales import tone, semitone
 import sys
 
@@ -22,13 +22,12 @@ common_intervals = dict(
 
 _mod = sys.modules[__name__]
 for (name,intv) in common_intervals.items():
-    def curry(n, i):
-        def f(note):
-            return note + i
-        f.__name__ = "interval_" + name
-        f.__doc__ = "Given a note, return note at " + name
-        return f
-    setattr(_mod, name, curry(name, intv))
+    def inner_func(note,i):
+        return note + i
+    f = functools.partial(inner_func, i=intv)
+    f.__name__ = "interval_" + name
+    f.__doc__ = "Given a note, return note at " + name
+    setattr(_mod, "interval_" + name, f)
 
 common_chords = dict(
     M=(P1,M3,P5),
@@ -59,10 +58,18 @@ def chord_for_root(root, chord_tuple):
     return tuple([f(root) for f in chord_tuple])
 
 for (name, ctuple) in common_chords.items():
-    def curry(name, chord_tuple):
-        def f(note):
-            return chord_for_root(note, chord_tuple)
-        f.__name__ = "chord_" + name
-        f.__doc__ = "Given a note, generate the {0} chord".format(name)
-        return f
+    f = functools.partial(chord_for_root, chord_tuple=ctuple)
+    f.__name__ = "chord_" + name
+    f.__doc__ = "Given a note, generate the {0} chord".format(name)
     setattr(_mod, "chord_" + name, curry(name,ctuple))
+
+
+
+
+
+
+
+
+
+
+

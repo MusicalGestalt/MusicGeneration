@@ -63,14 +63,11 @@ def scale(root, intervals):
 # lift the scales to modules
 _mod = sys.modules[__name__]
 for (name,intvs) in _intervals.items():
-    def curry(n,i):
-        def f(root):
-            return scale(root,i)
-        f.__name__ = n
-        f.__doc__ = """Returns a list of {0} notes 
-        based on the root note""".format(n.replace("_", " "))
-        return f
-    setattr(_mod, name, curry(name,intvs))
+    f = functools.partial(scale,intervals=intvs)
+    f.__name__ = name
+    f.__doc__ = """Returns a list of {0} notes 
+    based on the root note""".format(name.replace("_", " "))
+    setattr(_mod, name, f)
     
 if __name__ == "__main__":
     import doctest
