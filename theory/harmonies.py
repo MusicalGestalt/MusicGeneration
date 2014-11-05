@@ -45,7 +45,8 @@ common_chords = dict(
     dM7=(P1,M3,d5,M7),
     dm7=(P1,M3,d5,m7),
     AugM7=(P1,M3,A5,M7),
-    Aug7=(P1,M3,A5,m7)
+    Aug7=(P1,M3,A5,m7),
+    m7b5=(P1,m3,d5,m7)
     )
 
 def chord_for_root(root, chord_tuple):
