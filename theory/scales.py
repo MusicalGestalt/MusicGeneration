@@ -1,6 +1,5 @@
 """Tools for generating scales."""
 
-from functools import reduce
 import sys
 
 chromatic_scale = ["A", "A#", "B", 
