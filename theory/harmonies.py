@@ -11,6 +11,11 @@ import functools
 from .scales import tone, semitone
 import sys
 
+# This dict defines a set of common intervals
+# Note that many intervals have multiple spellings
+# a perfect first (P1) is also a diminished second (d2)
+# P1, P4 and P5 are the key perfect intervals
+# P8 is one octave up
 common_intervals = dict(
     P1=0,d2=0,
     m2=semitone,A1=semitone,
