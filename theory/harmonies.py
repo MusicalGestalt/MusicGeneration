@@ -2,7 +2,7 @@
 thus making it easy to generate "good" sounding
 notes given a starting note."""
 import functools
-from scales import tone, semitone
+from .scales import tone, semitone
 import sys
 
 common_intervals = dict(
@@ -25,14 +25,14 @@ for (name,intv) in common_intervals.items():
     def inner_func(note,i):
         return note + i
     f = functools.partial(inner_func, i=intv)
-    f.__name__ = "interval_" + name
+    f.__name__ = name
     f.__doc__ = "Given a note, return note at " + name
-    setattr(_mod, "interval_" + name, f)
+    setattr(_mod, name, f)
 
 common_chords = dict(
     M=(P1,M3,P5),
     m=(P1,m3,P5),
-    Aug5=(P1,M3,A5),
+    aug=(P1,M3,A5),
     am7=(P1,M3,A5,m7),
     aM7=(P1,M3,A5,M7),
     m7=(P1,m3,P5,m7),
@@ -43,11 +43,9 @@ common_chords = dict(
     sus4=(P1,P4,P5),
     add2=(P1,M2,M3,P5),
     power=(P1,P5),
-    dim5=(P1,M3,d5),
+    dim=(P1,M3,d5),
     dM7=(P1,M3,d5,M7),
     dm7=(P1,M3,d5,m7),
-    AugM7=(P1,M3,A5,M7),
-    Aug7=(P1,M3,A5,m7),
     m7b5=(P1,m3,d5,m7)
     )
 
@@ -64,7 +62,7 @@ for (name, ctuple) in common_chords.items():
     f = functools.partial(chord_for_root, chord_tuple=ctuple)
     f.__name__ = "chord_" + name
     f.__doc__ = "Given a note, generate the {0} chord".format(name)
-    setattr(_mod, "chord_" + name, curry(name,ctuple))
+    setattr(_mod, "chord_" + name, f)
 
 
 
