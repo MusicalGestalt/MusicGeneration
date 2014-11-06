@@ -1,6 +1,12 @@
 """This models common intervals and chords, 
 thus making it easy to generate "good" sounding
-notes given a starting note."""
+notes given a starting note.
+
+>>> chord_M(60)
+(60, 64, 67)
+>>> chord_m(60)
+(60, 63, 67)
+"""
 import functools
 from .scales import tone, semitone
 import sys
@@ -20,6 +26,8 @@ common_intervals = dict(
     M7=semitone*11,d8=semitone*11,
     P8=semitone*12,A7=semitone*12)
 
+# this block generates a function for each interval
+# in common_intervals. P5(60) == 67.
 _mod = sys.modules[__name__]
 for (name,intv) in common_intervals.items():
     def inner_func(note,i):
@@ -58,6 +66,8 @@ def chord_for_root(root, chord_tuple):
     """
     return tuple([f(root) for f in chord_tuple])
 
+# this block generates a set of chord_ functions
+# for each entry in common chords, ie chord_am7
 for (name, ctuple) in common_chords.items():
     f = functools.partial(chord_for_root, chord_tuple=ctuple)
     f.__name__ = "chord_" + name
