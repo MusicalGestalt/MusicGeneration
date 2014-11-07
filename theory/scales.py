@@ -1,7 +1,7 @@
 """Tools for generating scales."""
 import functools
 import sys
-from harmonies import tone, semitone
+from .harmonies import tone, semitone
 middleC = 60
 
 def note_for_semitones(num):
