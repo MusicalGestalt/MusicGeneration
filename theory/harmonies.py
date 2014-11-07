@@ -8,8 +8,10 @@ notes given a starting note.
 (60, 63, 67)
 """
 import functools
-from scales import tone, semitone
 import sys
+
+tone = 2
+semitone = 1
 
 # This dict defines a set of common intervals
 # Note that many intervals have multiple spellings
