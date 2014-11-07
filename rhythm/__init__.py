@@ -1,0 +1,11 @@
+ticks_per_beat = 32
+quarter_note = ticks_per_beat
+eight_note = quarter_note / 2
+sixteenth_note = quarter_note / 4
+thirty_second_note = quarter_note / 8
+half_note = quarter_note * 2
+whole_note = quarter_note * 4
+quarter_note_triplet = half_note / 3
+eight_note_triplet = quarter_note / 3
+sixtheenth_note_triplet = eight_note / 3
+thirty_second_note_triplet = sixteenth_note_triplet / 3
