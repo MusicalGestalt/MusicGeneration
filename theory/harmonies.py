@@ -8,7 +8,7 @@ notes given a starting note.
 (60, 63, 67)
 """
 import functools
-from .scales import tone, semitone
+from scales import tone, semitone
 import sys
 
 # This dict defines a set of common intervals
@@ -67,7 +67,7 @@ def chord_for_root(root, chord_tuple):
     generate all the notes in the chord.
 
     >>> chord_for_root(60,(P1,M3,P5))
-    (60,64,67)
+    (60, 64, 67)
     """
     return tuple([f(root) for f in chord_tuple])
 
@@ -75,12 +75,14 @@ def chord_for_root(root, chord_tuple):
 # for each entry in common chords, ie chord_am7
 for (name, ctuple) in common_chords.items():
     f = functools.partial(chord_for_root, chord_tuple=ctuple)
-    f.__name__ = "chord_" + name
+    f.__name__ = name + "_chord"
     f.__doc__ = "Given a note, generate the {0} chord".format(name)
-    setattr(_mod, "chord_" + name, f)
+    setattr(_mod, f.__name__, f)
 
 
-
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
 
 
 

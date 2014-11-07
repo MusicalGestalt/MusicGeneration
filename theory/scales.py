@@ -18,6 +18,11 @@ def notes_for_list(l):
 
 
 
+# Should a scale of C contain a C note in 2 octaves?
+# It seems that this is true for major_intervals, but not for
+# major_pentatonic_intervals (for example)
+# Since it's always the case that a root note, x, and 'x+octave'
+# are both in the scale, I think we can omit 'x+octave'. What do you think?
 major_intervals = [0, tone, tone, semitone, tone, tone, tone, semitone]
 natural_minor_intervals = [0, tone, semitone, tone, tone, semitone, tone, tone]
 harmonic_minor_intervals = [0, tone, semitone, tone, tone, semitone, tone, semitone]
@@ -28,7 +33,12 @@ aeolian_mode_intervals = [0, tone,semitone,tone,tone,semitone,tone,tone]
 locrian_mode_intervals = [0, semitone,tone,tone,semitone,tone,tone,tone]
 major_pentatonic_intervals = [0, tone, tone, tone*2,tone]
 minor_pentatonic_intervals = [0, tone + semitone, tone, tone, tone + semitone]
-chromatic_scale_intervals = [semitone for _ in range(12)]
+# Should this also start with zero? (as I've modified it)
+chromatic_scale_intervals = [0] + [semitone for _ in range(11)]
+# [This let me shorten the scalify function (below)]
+# If all lists start with 0, maybe we can remove the 0 from all lists, since it's a given
+# that the root is a member of the interval.
+
 
 _intervals = dict(
     major=major_intervals,
@@ -44,6 +54,13 @@ _intervals = dict(
     major_pentatonic=major_pentatonic_intervals
     )
 
+
+# I think it would also be nice to be able to generate N notes
+# from a given scale. We could simply add another input parameter
+# to scale: e.g scale(root, intervals, num_notes=None)
+# If None, it will default to returning all notes in the intervals
+# (as it currently does).
+
 def scale(root, intervals):
     """Given a root note and a series of intervals, generate 
     a scale based on them.
@@ -54,11 +71,8 @@ def scale(root, intervals):
     [60, 62, 63, 65, 67, 68, 70, 72]
     """
     def scalify(accum,x):
-        if len(accum) > 0:
-            return accum + [accum[-1]+x[1]]
-        else:
-            return accum + [x[0] + x[1]]
-    return functools.reduce(scalify, [(root,intv) for intv in intervals], [])
+        return accum + [accum[-1]+x]
+    return functools.reduce(scalify, intervals[1:], [root])
 
 # lift the scales to modules
 _mod = sys.modules[__name__]
