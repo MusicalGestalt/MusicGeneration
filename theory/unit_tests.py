@@ -2,8 +2,8 @@
 
 import unittest
 
-import .scales
-import .harmonies
+from . import scales
+from . import harmonies
 
 #
 # This file is mostly a placeholder for future tests and example code
