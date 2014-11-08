@@ -1,3 +1,8 @@
+# TODO(remy): Why is a quarter_note = 32?
+# Also, how are "beats" related to ticks?
+# e.g. if we have 100 bpm (beats/min), then do we have 3200 ticks/min?
+# When you originally mentioned 32, I thought you were referring to
+# 32 ticks in a 'bar', so we could fit 32 notes into a bar (at most)
 ticks_per_beat = 32
 quarter_note = ticks_per_beat
 eight_note = quarter_note / 2
