@@ -66,6 +66,9 @@ class Phrase:
         return locals()
     notes = property(**notes())
 
+    # TODO(remy): It looks like this assumes that all Phrases start at time=0
+    # This could be a valid assumption. However, we could just rename this to
+    # phrase_endtime, or similar, to avoid the assumption for now.
     def phrase_length(self):
         """How many ticks long this phrase is."""
         return max(map(self.notes, lambda n: n.start_tick + n.duration))

@@ -17,6 +17,7 @@ def notes_for_list(l):
 
 
 
+# TODO(remy): read below
 # Should a scale of C contain a C note in 2 octaves?
 # It seems that this is true for major_intervals, but not for
 # major_pentatonic_intervals (for example)
@@ -72,6 +73,25 @@ def scale(root, intervals):
     def scalify(accum,x):
         return accum + [accum[-1]+x]
     return functools.reduce(scalify, intervals[1:], [root])
+
+
+# TODO(remy): I understand why you lift the scales to the module level.
+# It lets you write human readable code like:
+#   scales.chromatic(scales.middleC)
+# However, I think it's more useful to expose the _intervals dictionary.
+# Since I don't have a strong familiarity with music theory, I prefer
+# to have a dictionary of named scales (major, minor, etc) and the
+# same with chords. In generating music, I might, for example, like to start
+# by picking a random scale/chord and not having to explicitly enumerate
+# each one in my code would be good.
+# I've written the functions below, which may be fine.
+
+def get_scale_names():
+    return _intervals.keys()
+
+def get_scale_intervals(name):
+    return _intervals.get(name)
+
 
 # lift the scales to modules
 _mod = sys.modules[__name__]
