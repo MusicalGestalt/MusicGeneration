@@ -1,13 +1,20 @@
 """Various objects to help with calculating rhythms."""
 
 class TimeSignature:
+    """
+    Time signatures are usually represented as something like 4/4
+    The numerator is the number of beats per measure.
+    The denominator is the type of note that represents one beat.
+    So 4/4 time is 4-beats per measure, and a 1/4 note gets one beat.
+
+    """
     def __init__(self, beats_per_measure=4, one_beat_note=4, granularity=32):
         """
-        Time signatures are usually represented as something like 4/4
-        The numerator is the number of beats per measure.
-        The denominator is the type of note that represents one beat.
-        So 4/4 time is 4-beats per measure, and a 1/4 note gets one beat.
-
+        Beats per measure is the numerator.
+        One beat note is which note gets one beat, used as a 
+        denominator in a few division operations to figure out
+        how long various kinds of notes are.
+        
         Granualarity is how many subdivisions we can put in a single beat- 
         it's the number of ticks.
 
