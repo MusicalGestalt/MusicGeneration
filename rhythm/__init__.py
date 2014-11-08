@@ -1,8 +1,11 @@
-# TODO(remy): Why is a quarter_note = 32?
-# Also, how are "beats" related to ticks?
-# e.g. if we have 100 bpm (beats/min), then do we have 3200 ticks/min?
-# When you originally mentioned 32, I thought you were referring to
-# 32 ticks in a 'bar', so we could fit 32 notes into a bar (at most)
+# Here's the logic- a single "beat", musically, can sub-divided indefinitely
+# The smallest you'll usually see marked in music is 32nd notes.
+# Hence, 32 beats per quarter note (assuming a quarter note gets one beat)
+# Long term, we'll probably replace these with functions so we can do things
+# like 2/2 time (half note gets one beat), and 6/8 time (eight note gets one beat)
+# This version covers the most common case, though.
+# Rememeber, just because there are 32 ticks per beat, they're just POTENTIAL ticks
+# We only need to track the ticks on which an event happens.
 ticks_per_beat = 32
 quarter_note = ticks_per_beat
 eight_note = quarter_note / 2
