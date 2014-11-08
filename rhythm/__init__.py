@@ -14,7 +14,7 @@ class TimeSignature:
         One beat note is which note gets one beat, used as a 
         denominator in a few division operations to figure out
         how long various kinds of notes are.
-        
+
         Granualarity is how many subdivisions we can put in a single beat- 
         it's the number of ticks.
 
@@ -24,9 +24,9 @@ class TimeSignature:
         """
         self.__beats_per_measure = beats_per_measure
         
-        ticks_per_beat = beats_per_measure * granularity // one_beat_note
+        ticks_per_beat = granularity
         self.__ticks_per_measure = beats_per_measure * granularity
-        self.__quarter_note = (4 // one_beat_note) * ticks_per_beat
+        self.__quarter_note = (one_beat_note / 4) * ticks_per_beat
         self.__eighth_note = self.__quarter_note // 2
         self.__sixteenth_note = self.__eighth_note // 2
         self.__thirtysecond_note = self.__sixteenth_note // 2
