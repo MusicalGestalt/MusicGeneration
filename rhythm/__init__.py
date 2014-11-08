@@ -8,13 +8,18 @@ class TimeSignature:
         The denominator is the type of note that represents one beat.
         So 4/4 time is 4-beats per measure, and a 1/4 note gets one beat.
 
-        Granualarity is how many subdivisions we can put in a single beat.
+        Granualarity is how many subdivisions we can put in a single beat- 
+        it's the number of ticks.
+
+        Each property of the time signature then, tells us how many ticks long a 
+        specific note is. For example, in 4/4 time, at 32 ticks-per-beat,
+        a quarter note is 32 ticks long, while an eight note is 16 ticks long.
         """
         self.__beats_per_measure = beats_per_measure
         
-        ticks_per_beat = beats_per_measure * granularity / one_beat_note
+        ticks_per_beat = beats_per_measure * granularity // one_beat_note
         self.__ticks_per_measure = beats_per_measure * granularity
-        self.__quarter_note = (4 / one_beat_note) * ticks_per_beat
+        self.__quarter_note = (4 // one_beat_note) * ticks_per_beat
         self.__eighth_note = self.__quarter_note // 2
         self.__sixteenth_note = self.__eighth_note // 2
         self.__thirtysecond_note = self.__sixteenth_note // 2
