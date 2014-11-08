@@ -31,7 +31,7 @@ class TimeSignature:
         self.__sixteenth_note = self.__eighth_note // 2
         self.__thirtysecond_note = self.__sixteenth_note // 2
         self.__half_note = self.__quarter_note * 2
-        self.__whole_note = self.__half_note * 2
+        self.__whole_note = self.__ticks_per_measure # a whole note is always 1 measure long!
         self.__eighth_note_triplet = self.__quarter_note // 3
         self.__sixteenth_note_triplet = self.__eighth_note // 3
 
