@@ -1,19 +1,58 @@
-# Here's the logic- a single "beat", musically, can sub-divided indefinitely
-# The smallest you'll usually see marked in music is 32nd notes.
-# Hence, 32 beats per quarter note (assuming a quarter note gets one beat)
-# Long term, we'll probably replace these with functions so we can do things
-# like 2/2 time (half note gets one beat), and 6/8 time (eight note gets one beat)
-# This version covers the most common case, though.
-# Rememeber, just because there are 32 ticks per beat, they're just POTENTIAL ticks
-# We only need to track the ticks on which an event happens.
-ticks_per_beat = 32
-quarter_note = ticks_per_beat
-eight_note = quarter_note / 2
-sixteenth_note = quarter_note / 4
-thirty_second_note = quarter_note / 8
-half_note = quarter_note * 2
-whole_note = quarter_note * 4
-quarter_note_triplet = half_note / 3
-eight_note_triplet = quarter_note / 3
-sixtheenth_note_triplet = eight_note / 3
-thirty_second_note_triplet = sixteenth_note_triplet / 3
+"""Various objects to help with calculating rhythms."""
+
+class TimeSignature:
+    def __init__(self, beats_per_measure=4, one_beat_note=4, granularity=32):
+        """
+        Time signatures are usually represented as something like 4/4
+        The numerator is the number of beats per measure.
+        The denominator is the type of note that represents one beat.
+        So 4/4 time is 4-beats per measure, and a 1/4 note gets one beat.
+
+        Granualarity is how many subdivisions we can put in a single beat.
+        """
+        self.__beats_per_measure = beats_per_measure
+        
+        ticks_per_beat = beats_per_measure * granularity / one_beat_note
+        self.__ticks_per_measure = beats_per_measure * granularity
+        self.__quarter_note = (4 / one_beat_note) * ticks_per_beat
+        self.__eighth_note = self.__quarter_note // 2
+        self.__sixteenth_note = self.__eighth_note // 2
+        self.__thirtysecond_note = self.__sixteenth_note // 2
+        self.__half_note = self.__quarter_note * 2
+        self.__whole_note = self.__half_note * 2
+        self.__eighth_note_triplet = self.__quarter_note // 3
+        self.__sixteenth_note_triplet = self.__eighth_note // 3
+
+    @property
+    def quarter_note(self): return self.__quarter_note
+
+    @property
+    def eight_note(self): return self.__eighth_note
+
+    @property
+    def sixteenth_note(self): return self.__sixteenth_note
+
+    @property
+    def thirtysecond_note(self): return self.__thirtysecond_note
+
+    @property
+    def half_note(self): return self.__half_note
+
+    @property
+    def whole_note(self): return self.__whole_note
+
+    @property
+    def eighth_note_triplet(self): return self.__eighth_note_triplet
+
+    @property
+    def sixteenth_note_triplet(self): return self.__sixteenth_note_triplet
+
+    @property
+    def beats_per_measure(self): return self.__beats_per_measure
+
+    @property
+    def ticks_per_measure(self): return self.__ticks_per_measure
+
+
+
+
