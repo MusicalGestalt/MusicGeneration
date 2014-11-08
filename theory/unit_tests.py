@@ -2,8 +2,8 @@
 
 import unittest
 
-import scales
-import harmonies
+import .scales
+import .harmonies
 
 
 #
@@ -29,3 +29,5 @@ class TestHarmoniesLib(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
+def run_tests():
+    unittest.main()
