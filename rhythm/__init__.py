@@ -58,6 +58,9 @@ class TimeSignature:
     @property
     def ticks_per_measure(self): return self.__ticks_per_measure
 
-
+fourfour = TimeSignature()
+twofour = TimeSignature(2)
+threefour = TimeSignature(3)
+sixeight = TimeSignature(6,8)
 
 
