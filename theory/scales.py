@@ -3,6 +3,8 @@ import functools
 import sys
 from .harmonies import tone, semitone
 middleC = 60
+minC = 0
+maxC = 108
 
 def note_for_semitones(num):
     """0 = C-1. 1=C#/Db0, 60=C4, etc."""
@@ -14,6 +16,11 @@ def note_for_semitones(num):
 
 def notes_for_list(l):
     return list(map(note_for_semitones, l))
+
+def octaves_for_note(note):
+    """Given a note, return all octaves between C-1 and C8 for that note"""
+    return sorted([n for n in range(note,minC-1,-12)] + [n for n in range(note,maxC+1,12)])
+
 
 
 
