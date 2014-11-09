@@ -43,7 +43,7 @@ major_pentatonic_intervals = [tone, tone, tone*2,tone, tone]
 minor_pentatonic_intervals = [tone + semitone, tone, tone, tone + semitone, tone]
 chromatic_scale_intervals = [semitone for _ in range(11)]
 
-intervals = dict(
+_intervals = dict(
     major=major_intervals,
     natural_minor=natural_minor_intervals,
     harmonic_minor=harmonic_minor_intervals,
@@ -56,6 +56,16 @@ intervals = dict(
     minor_pentatonic=minor_pentatonic_intervals,
     major_pentatonic=major_pentatonic_intervals
     )
+
+# Exposing _intervals data via 'get-only' methods
+# so that _intervals is not modified accidentally.
+def get_scale_names():
+    return _intervals.keys()
+
+
+def get_scale_intervals(name):
+    return _intervals.get(name)
+
 
 def scale(root, intervals, num_notes=None):
     """Given a root note and a series of intervals, generate 
@@ -70,15 +80,17 @@ def scale(root, intervals, num_notes=None):
     """
     def scalify(accum,x):
         return accum + [accum[-1]+x]
-    res = functools.reduce(scalify, intervals, [root])
-    if num_notes == None: return res[:-1]
-    if num_notes <= len(res): return res[:num_notes]
-    return res[:-1] + scale(res[-1],intervals,num_notes-len(res))
+    num_notes = len(intervals) if num_notes is None else num_notes
+    res = functools.reduce(
+            scalify,
+            [intervals[i % len(intervals)] for i in range(num_notes-1)],
+            [root])
+    return res
 
 
 # lift the scales to modules
 _mod = sys.modules[__name__]
-for (name,intvs) in intervals.items():
+for (name,intvs) in _intervals.items():
     f = functools.partial(scale,intervals=intvs)
     f.__name__ = name
     f.__doc__ = """Returns a list of {0} notes 
