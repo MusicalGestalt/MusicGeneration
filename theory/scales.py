@@ -17,12 +17,10 @@ def notes_for_list(l):
 
 
 
-# TODO(remy): read below
-# Should a scale of C contain a C note in 2 octaves? 
-# It seems that this is true for major_intervals, but not for
-# major_pentatonic_intervals (for example)
-# Since it's always the case that a root note, x, and 'x+octave'
-# are both in the scale, I think we can omit 'x+octave'. What do you think?
+# So that we can accurately run the scale across octaves, we 
+# should keep ALL of the intervals, including the next octave.
+# instead, if "none" is supplied to the scale func, we'll chop off 
+# the last.
 major_intervals = [tone, tone, semitone, tone, tone, tone, semitone]
 natural_minor_intervals = [tone, semitone, tone, tone, semitone, tone, tone]
 harmonic_minor_intervals = [tone, semitone, tone, tone, semitone, tone, semitone]
@@ -31,8 +29,8 @@ lydian_mode_intervals = [tone,tone,tone,semitone,tone,tone,semitone]
 mixolydian_mode_intervals = [tone,tone,semitone,tone,tone,semitone,tone]
 aeolian_mode_intervals = [tone,semitone,tone,tone,semitone,tone,tone]
 locrian_mode_intervals = [semitone,tone,tone,semitone,tone,tone,tone]
-major_pentatonic_intervals = [tone, tone, tone*2,tone]
-minor_pentatonic_intervals = [tone + semitone, tone, tone, tone + semitone]
+major_pentatonic_intervals = [tone, tone, tone*2,tone, tone]
+minor_pentatonic_intervals = [tone + semitone, tone, tone, tone + semitone, tone]
 chromatic_scale_intervals = [semitone for _ in range(11)]
 
 intervals = dict(
@@ -56,14 +54,14 @@ def scale(root, intervals, num_notes=None):
     octaves.
 
     >>> scale(60, major_intervals)
-    [60, 62, 64, 65, 67, 69, 71, 72]
+    [60, 62, 64, 65, 67, 69, 71]
     >>> scale(60, natural_minor_intervals)
-    [60, 62, 63, 65, 67, 68, 70, 72]
+    [60, 62, 63, 65, 67, 68, 70]
     """
     def scalify(accum,x):
         return accum + [accum[-1]+x]
     res = functools.reduce(scalify, intervals, [root])
-    if num_notes == None: return res
+    if num_notes == None: return res[:-1]
     if num_notes <= len(res): return res[:num_notes]
     return res[:-1] + scale(res[-1],intervals,num_notes-len(res))
 
