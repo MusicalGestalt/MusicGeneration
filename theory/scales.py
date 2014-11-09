@@ -18,7 +18,10 @@ def notes_for_list(l):
     return list(map(note_for_semitones, l))
 
 def octaves_for_note(note):
-    """Given a note, return all octaves between C-1 and C8 for that note"""
+    """Given a note, return all octaves between C-1 and C8 for that note
+    >>> octaves_for_note(60)
+    [0, 12, 24, 36, 48, 60, 60, 72, 84, 96, 108]
+    """
     return sorted([n for n in range(note,minC-1,-12)] + [n for n in range(note,maxC+1,12)])
 
 
