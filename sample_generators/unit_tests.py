@@ -47,8 +47,8 @@ class TestSampleGeneration(unittest.TestCase):
         self.assertEqual(min(data), -0.5)
         self.assertEqual(max(data), -0.5)
 
-        delay_get = generators.DelayedGenerator(source=constant_gen, start_time=60.0)
-        data = delay_get.get(SAMPLING_RATE)
+        delay_gen = generators.DelayedGenerator(source=constant_gen, start_time=60.0)
+        data = delay_gen.get(SAMPLING_RATE)
         self.assertEqual(min(data), 0)
         self.assertEqual(max(data), 0)
 
@@ -104,7 +104,6 @@ class TestEnvelopes(unittest.TestCase):
         # Release max/min should be 0.8 and 0.0
         self.assertAlmostEqual(min(data[8*one_tenth:SAMPLING_RATE+1]), 0)
         self.assertAlmostEqual(max(data[8*one_tenth:SAMPLING_RATE+1]), 0.8)
-
 
 
 
