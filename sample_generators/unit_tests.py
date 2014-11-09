@@ -33,6 +33,26 @@ class TestSampleGeneration(unittest.TestCase):
             else:
                 self.assertTrue(sample <= 0)
 
+    def test_delayed_generator(self):
+        constant_gen = generators.ConstantGenerator(constant=-0.5)
+        delay_get = generators.DelayedGenerator(source=constant_gen, start_time=0.5)
+        data = delay_get.get(SAMPLING_RATE)
+        self.assertEqual(min(data[:int(SAMPLING_RATE/2)]), 0)
+        self.assertEqual(max(data[:int(SAMPLING_RATE/2)]), 0)
+        self.assertEqual(min(data[int(SAMPLING_RATE/2):]), -0.5)
+        self.assertEqual(max(data[int(SAMPLING_RATE/2):]), -0.5)
+
+        delay_get = generators.DelayedGenerator(source=constant_gen, start_time=0.0)
+        data = delay_get.get(SAMPLING_RATE)
+        self.assertEqual(min(data), -0.5)
+        self.assertEqual(max(data), -0.5)
+
+        delay_get = generators.DelayedGenerator(source=constant_gen, start_time=60.0)
+        data = delay_get.get(SAMPLING_RATE)
+        self.assertEqual(min(data), 0)
+        self.assertEqual(max(data), 0)
+
+
 class TestEnvelopes(unittest.TestCase):
     def test_volume_envelope(self):
         constant_gen = generators.ConstantGenerator()

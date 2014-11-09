@@ -79,3 +79,16 @@ class SawtoothWaveGenerator(SampleGenerator):
     def _get(self):
         cycle_position = (self._time % self._cycle_time) / self._cycle_time
         return (cycle_position * 2) - 1
+
+
+class DelayedGenerator(SampleGenerator):
+    """A Sine-wave sample generator."""
+    def __init__(self, source, start_time, sampling_rate=SAMPLING_RATE):
+        SampleGenerator.__init__(self, sampling_rate)
+        self._source = source
+        self._start_time = start_time
+
+    def _get(self):
+        if self._time < self._start_time:
+            return 0.0
+        return self._source.__next__()
