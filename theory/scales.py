@@ -18,29 +18,24 @@ def notes_for_list(l):
 
 
 # TODO(remy): read below
-# Should a scale of C contain a C note in 2 octaves?
+# Should a scale of C contain a C note in 2 octaves? 
 # It seems that this is true for major_intervals, but not for
 # major_pentatonic_intervals (for example)
 # Since it's always the case that a root note, x, and 'x+octave'
 # are both in the scale, I think we can omit 'x+octave'. What do you think?
-major_intervals = [0, tone, tone, semitone, tone, tone, tone, semitone]
-natural_minor_intervals = [0, tone, semitone, tone, tone, semitone, tone, tone]
-harmonic_minor_intervals = [0, tone, semitone, tone, tone, semitone, tone, semitone]
-dorian_mode_intervals = [0, tone,semitone,tone,tone,tone,semitone,tone]
-lydian_mode_intervals = [0, tone,tone,tone,semitone,tone,tone,semitone]
-mixolydian_mode_intervals = [0, tone,tone,semitone,tone,tone,semitone,tone]
-aeolian_mode_intervals = [0, tone,semitone,tone,tone,semitone,tone,tone]
-locrian_mode_intervals = [0, semitone,tone,tone,semitone,tone,tone,tone]
-major_pentatonic_intervals = [0, tone, tone, tone*2,tone]
-minor_pentatonic_intervals = [0, tone + semitone, tone, tone, tone + semitone]
-# Should this also start with zero? (as I've modified it)
-chromatic_scale_intervals = [0] + [semitone for _ in range(11)]
-# [This let me shorten the scalify function (below)]
-# If all lists start with 0, maybe we can remove the 0 from all lists, since it's a given
-# that the root is a member of the interval.
+major_intervals = [tone, tone, semitone, tone, tone, tone, semitone]
+natural_minor_intervals = [tone, semitone, tone, tone, semitone, tone, tone]
+harmonic_minor_intervals = [tone, semitone, tone, tone, semitone, tone, semitone]
+dorian_mode_intervals = [tone,semitone,tone,tone,tone,semitone,tone]
+lydian_mode_intervals = [tone,tone,tone,semitone,tone,tone,semitone]
+mixolydian_mode_intervals = [tone,tone,semitone,tone,tone,semitone,tone]
+aeolian_mode_intervals = [tone,semitone,tone,tone,semitone,tone,tone]
+locrian_mode_intervals = [semitone,tone,tone,semitone,tone,tone,tone]
+major_pentatonic_intervals = [tone, tone, tone*2,tone]
+minor_pentatonic_intervals = [tone + semitone, tone, tone, tone + semitone]
+chromatic_scale_intervals = [semitone for _ in range(11)]
 
-
-_intervals = dict(
+intervals = dict(
     major=major_intervals,
     natural_minor=natural_minor_intervals,
     harmonic_minor=harmonic_minor_intervals,
@@ -54,16 +49,11 @@ _intervals = dict(
     major_pentatonic=major_pentatonic_intervals
     )
 
-
-# I think it would also be nice to be able to generate N notes
-# from a given scale. We could simply add another input parameter
-# to scale: e.g scale(root, intervals, num_notes=None)
-# If None, it will default to returning all notes in the intervals
-# (as it currently does).
-
-def scale(root, intervals):
+def scale(root, intervals, num_notes=None):
     """Given a root note and a series of intervals, generate 
-    a scale based on them.
+    a scale based on them. num_notes will allow you to select
+    subset of the scale, or continue the scale into additonal
+    octaves.
 
     >>> scale(60, major_intervals)
     [60, 62, 64, 65, 67, 69, 71, 72]
@@ -72,30 +62,15 @@ def scale(root, intervals):
     """
     def scalify(accum,x):
         return accum + [accum[-1]+x]
-    return functools.reduce(scalify, intervals[1:], [root])
-
-
-# TODO(remy): I understand why you lift the scales to the module level.
-# It lets you write human readable code like:
-#   scales.chromatic(scales.middleC)
-# However, I think it's more useful to expose the _intervals dictionary.
-# Since I don't have a strong familiarity with music theory, I prefer
-# to have a dictionary of named scales (major, minor, etc) and the
-# same with chords. In generating music, I might, for example, like to start
-# by picking a random scale/chord and not having to explicitly enumerate
-# each one in my code would be good.
-# I've written the functions below, which may be fine.
-
-def get_scale_names():
-    return _intervals.keys()
-
-def get_scale_intervals(name):
-    return _intervals.get(name)
+    res = functools.reduce(scalify, intervals, [root])
+    if num_notes == None: return res
+    if num_notes <= len(res): return res[:num_notes]
+    return res[:-1] + scale(res[-1],intervals,num_notes-len(res))
 
 
 # lift the scales to modules
 _mod = sys.modules[__name__]
-for (name,intvs) in _intervals.items():
+for (name,intvs) in intervals.items():
     f = functools.partial(scale,intervals=intvs)
     f.__name__ = name
     f.__doc__ = """Returns a list of {0} notes 
