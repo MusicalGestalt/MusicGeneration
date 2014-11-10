@@ -28,14 +28,31 @@ class DownbeatIntervalGenerator(BaseIntervalGenerator):
             yield next_event
             if next_event[1] == BeatEvent.note_on: #we just emitted a down beat
                 last_downbeat = next_event[0]
-                next_event = (next_event[0] + self.time_signature.quarter_note,
+                next_event = (next_event[0] + self.note_length,
                     BeatEvent.note_off) #so the next thing we emit 
                                         #is an end to the note
             else:
                 next_event = (last_downbeat + self.time_signature.ticks_per_measure,
                     BeatEvent.note_on)
 
+class MetronomeIntervalGenerator(BaseIntervalGenerator):
+    """Given a time signature, this will create a note on
+    every beat."""
+    def __init__(self, time_signature=fourfour, beat_length="quarter_note"):
+        super().__init__(time_signature, beat_length)
+
+    def __iter__(self):
+        next_event = (0, BeatEvent.note_on)
+        last_beat = 0
+        while (True):
+            yield next_event
+            if next_event[1] == BeatEvent.note_on:
+                last_beat = next_event[0]
+                next_event = (last_beat + self.note_length, BeatEvent.note_off)
+            else:
+                next_event = (last_beat + self.time_signature.ticks_per_beat,
+                    BeatEvent.note_on)
 
 
-    
+
 

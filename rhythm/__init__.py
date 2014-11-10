@@ -35,12 +35,13 @@ class TimeSignature:
         self.__whole_note = self.__ticks_per_measure # a whole note is always 1 measure long!
         self.__eighth_note_triplet = self.__quarter_note // 3
         self.__sixteenth_note_triplet = self.__eighth_note // 3
+        self.__ticks_per_beat = ticks_per_beat
 
     @property
     def quarter_note(self): return self.__quarter_note
 
     @property
-    def eight_note(self): return self.__eighth_note
+    def eighth_note(self): return self.__eighth_note
 
     @property
     def sixteenth_note(self): return self.__sixteenth_note
@@ -65,6 +66,9 @@ class TimeSignature:
 
     @property
     def ticks_per_measure(self): return self.__ticks_per_measure
+
+    @property
+    def ticks_per_beat(self): return self.__ticks_per_beat
 
 fourfour = TimeSignature()
 twofour = TimeSignature(2)
