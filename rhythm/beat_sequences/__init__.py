@@ -2,12 +2,24 @@
 
 from .. import (fourfour, TimeSignature, BeatEvent)
 
-class DownbeatIntervalGenerator:
+class BaseIntervalGenerator:
+    """
+    Base class for generating beat patterns. Depends on
+    time signatures.
+    """
+    def __init__(self, time_signature=fourfour, beat_length="quarter_note"):
+        self.time_signature = time_signature
+        if isinstance(beat_length, str):
+            self.note_length = getattr(time_signature, beat_length)
+        else:
+            self.note_length = beat_length
+
+class DownbeatIntervalGenerator(BaseIntervalGenerator):
     """Given a time signature, this will create
     beat pattern of a down-beat at the top of the
     measure."""
-    def __init__(self, time_signature=fourfour):
-        self.time_signature = time_signature
+    def __init__(self, time_signature=fourfour, beat_length="quarter_note"):
+        super().__init__(time_signature, beat_length)
 
     def __iter__(self):
         next_event = (0, BeatEvent.note_on)
@@ -23,4 +35,7 @@ class DownbeatIntervalGenerator:
                 next_event = (last_downbeat + self.time_signature.ticks_per_measure,
                     BeatEvent.note_on)
 
+
+
+    
 
