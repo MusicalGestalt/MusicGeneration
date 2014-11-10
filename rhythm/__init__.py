@@ -1,5 +1,6 @@
 """Various objects to help with calculating rhythms."""
-
+from enum import Enum #Enums ARE one P3.4 feature that you might not have.
+    #they've been backported, so you should be able to install enum from PIP
 class TimeSignature:
     """
     Time signatures are usually represented as something like 4/4
@@ -70,4 +71,5 @@ twofour = TimeSignature(2)
 threefour = TimeSignature(3)
 sixeight = TimeSignature(6,8)
 
+BeatEvent = Enum("BeatEvent", "note_on note_off")
 
