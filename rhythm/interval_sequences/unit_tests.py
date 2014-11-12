@@ -11,10 +11,10 @@ class TestDownbeatSequence(unittest.TestCase):
             if index > 20: break
 
     def test_fourfour(self):
-        self.do_test_beatgen(DownbeatIntervalGenerator(fourfour))
+        self.do_test_beatgen(SimpleIntervalGenerator(fourfour))
 
     def test_threefour(self):
-        self.do_test_beatgen(DownbeatIntervalGenerator(threefour))
+        self.do_test_beatgen(SimpleIntervalGenerator(threefour))
 
 class TestMetronome(unittest.TestCase):
     def do_test_beatgen(self, beat_gen):
@@ -24,10 +24,12 @@ class TestMetronome(unittest.TestCase):
             if index > 20: break
 
     def test_fourfour(self):
-        self.do_test_beatgen(MetronomeIntervalGenerator(fourfour))
+        self.do_test_beatgen(SimpleIntervalGenerator(fourfour, 
+            fourfour.ticks_per_beat))
 
     def test_threefour(self):
-        self.do_test_beatgen(MetronomeIntervalGenerator(threefour))
+        self.do_test_beatgen(SimpleIntervalGenerator(threefour,
+            threefour.ticks_per_beat))
         
 def main():
     unittest.main()

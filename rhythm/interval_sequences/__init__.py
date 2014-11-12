@@ -20,26 +20,17 @@ class BaseIntervalGenerator:
     def step(self, last_beat):
         raise AttributeError("__step is not implemented on BaseIntervalGenerator")
 
-class DownbeatIntervalGenerator(BaseIntervalGenerator):
-    """Given a time signature, this will create
-    beat pattern of a down-beat at the top of the
-    measure."""
-    def __init__(self, time_signature=fourfour):
+class SimpleIntervalGenerator(BaseIntervalGenerator):
+    """Given a time signature and a number of ticks, this 
+    generator will output intervals evenly spaced by that number of ticks."""
+
+    def __init__(self, time_signature=fourfour, num_ticks=fourfour.ticks_per_measure):
         super().__init__(time_signature)
+        self.num_ticks = num_ticks
     
     def step(self, last_beat):
         if not last_beat: return 0
-        return last_beat + self.time_signature.ticks_per_measure
-
-class MetronomeIntervalGenerator(BaseIntervalGenerator):
-    """Given a time signature, this will create a note on
-    every beat. Foo"""
-    def __init__(self, time_signature=fourfour, beat_length="quarter_note"):
-        super().__init__(time_signature)
-
-    def step(self, last_beat):
-        if not last_beat: return 0
-        return last_beat + self.time_signature.ticks_per_beat
+        return last_beat + self.num_ticks
 
 
 
