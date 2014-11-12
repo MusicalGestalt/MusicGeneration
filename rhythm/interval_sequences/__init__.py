@@ -1,6 +1,6 @@
 """These classes form a starting point for simple beat generators."""
 
-from .. import (fourfour, TimeSignature, BeatEvent)
+from .. import (fourfour, TimeSignature)
 
 class BaseIntervalGenerator:
     """

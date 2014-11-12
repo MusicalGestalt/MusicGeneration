@@ -75,5 +75,3 @@ twofour = TimeSignature(2)
 threefour = TimeSignature(3)
 sixeight = TimeSignature(6,8)
 
-BeatEvent = Enum("BeatEvent", "note_on note_off")
-
