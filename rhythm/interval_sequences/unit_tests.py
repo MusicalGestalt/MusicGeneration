@@ -1,7 +1,7 @@
 import unittest
 
 from . import *
-from .. import (fourfour, threefour, BeatEvent)
+from .. import (fourfour, threefour)
 
 class TestDownbeatSequence(unittest.TestCase):
     def do_test_beatgen(self, beat_gen, offset=0):
