@@ -1,0 +1,73 @@
+"""Instrument Library: Classes that produce wave data from musical Phrases."""
+
+from MusicGeneration.sample_generators import generators, envelopes, SAMPLING_RATE
+from MusicGeneration.music import Phrase
+from MusicGeneration.rhythm import TimeSignature
+
+
+class Instrument(generators.SampleGenerator):
+    def __init__(self, phrase=None, sampling_rate=SAMPLING_RATE):
+        super().__init__(self, sampling_rate)
+        self._current_phrase = phrase
+        self._next_phrase = None
+
+    def _get(self):
+        raise Exception("Not implemented.")
+
+    def set_next_phrase(self, phrase):
+      """After the current phrase has played, this phrase will be played."""
+      self._next_phrase = phrase
+
+
+# TODO: Move this function to 'theory'
+def ToneToFrequency(tone):
+  """Convert a tone to a frequency."""
+  # 60=C4 ==> 261.63Hz
+  # 69=A4 ==> 440Hz
+  return 440.0 * (2.0 ** (1.0/12.0)) ** (tone - 69)
+
+
+def get_sine_note_generator(freq, duration):
+    sine_note = generators.SineWaveGenerator(freq)
+    if duration >= 1.0:
+        enveloped_sine = envelopes.StandardEnvelope(sine_note, attack=0.05, decay=0.0, peak=1,
+                                                    level=1, sustain=duration-0.95, release=0.9)
+    else:
+        enveloped_sine = envelopes.StandardEnvelope(sine_note, attack=0, decay=0, peak=1,
+                                                    level=1, sustain=duration/2, release=duration/2)
+    return enveloped_sine
+
+
+class SineInstrument(Instrument):
+    def __init__(self, phrase=None, sampling_rate=SAMPLING_RATE):
+        super().__init__(self, phrase, sampling_rate)
+        self._setup_sample_source()
+
+    def _setup_sample_source(self):
+        self._source = generators.MixerGenerator()
+        self._remaining_samples = 0
+        if not self._current_phrase: return
+        convert_tick_to_seconds = lambda _tick = self._current_phrase.time_signature().convert_tick_to_seconds(_tick, self._bpm)
+        for note in self._current_phrase.notes:
+            # TODO(ciaran): Handle note volume.
+            freq = ToneToFrequency(note.tone)
+            start_time = convert_tick_to_seconds(note.start_tick)
+            duration = convert_tick_to_seconds(note.duration)
+            self._source.add(get_sine_note_generator(freq, duration),
+                             start_time=start_time)
+        # TODO: By looping on an integer number of samples, we might have
+        # drift between this and a source that kept full float precision.
+        # Think about this some more.
+        self._remaining_samples = int(self._current_phrase.phrase_endtime() * self._sampling_rate)
+
+    def _get(self):
+        if self._remaining_samples <= 0:
+          if self._next_phrase:
+            self._current_phrase = self._next_phrase
+            self._next_phrase = None
+          self._setup_sample_source()
+
+        return self._source.__next__()
+
+
+

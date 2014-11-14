@@ -1,6 +1,7 @@
 """Various objects to help with calculating rhythms."""
 from enum import Enum #Enums ARE one P3.4 feature that you might not have.
     #they've been backported, so you should be able to install enum from PIP
+
 class TimeSignature:
     """
     Time signatures are usually represented as something like 4/4
@@ -70,8 +71,22 @@ class TimeSignature:
     @property
     def ticks_per_beat(self): return self.__ticks_per_beat
 
+    def convert_tick_to_seconds(self, tick, beats_per_minute):
+        return convert_tick_to_seconds(tick, self, beats_per_minute)
+
+
 fourfour = TimeSignature()
 twofour = TimeSignature(2)
 threefour = TimeSignature(3)
 sixeight = TimeSignature(6,8)
+
+
+def convert_tick_to_seconds(tick, time_signature, beats_per_minute):
+    seconds_per_beat = 60.0 / beats_per_minute
+
+    beats_per_measure = time_signature.beats_per_measure()
+    ticks_per_measure = time_signature.ticks_per_measure()
+
+    beats_per_tick = beats_per_measure / ticks_per_measure
+    return tick * beats_per_tick * seconds_per_beat
 
