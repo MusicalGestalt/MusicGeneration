@@ -51,23 +51,22 @@ class Note:
         return locals()
     volume = property(**volume())
 
-class Phrase:
-    def __init__(self, *notes):
-        self.notes = notes
 
-    def notes():
-        doc = "The notes contained in this phrase."
-        def fget(self):
-            return self._notes
-        def fset(self, value):
-            self._notes = value
-        def fdel(self):
-            del self._notes
-        return locals()
-    notes = property(**notes())
+class Phrase:
+    def __init__(self, notes, time_signature):
+        self.__notes = notes
+        self.__time_signature = time_signature
+
+    @property
+    def notes(self):
+        return self.__notes
+
+    @property
+    def time_signature(self):
+        return self.__time_signature
 
     def phrase_endtime(self):
-        """How many ticks long this phrase is."""
+        """On what tick does this phrase end."""
         return max(map(self.notes, lambda n: n.start_tick + n.duration))
 
 

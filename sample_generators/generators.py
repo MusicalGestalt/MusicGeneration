@@ -82,7 +82,7 @@ class SawtoothWaveGenerator(SampleGenerator):
 
 
 class DelayedGenerator(SampleGenerator):
-    """A Sine-wave sample generator."""
+    """A delayed sample generator."""
     def __init__(self, source, start_time, sampling_rate=SAMPLING_RATE):
         SampleGenerator.__init__(self, sampling_rate)
         self._source = source
@@ -92,3 +92,23 @@ class DelayedGenerator(SampleGenerator):
         if self._time < self._start_time:
             return 0.0
         return self._source.__next__()
+
+
+class MixerGenerator(SampleGenerator):
+    """A sample generator to combines other generators."""
+    def __init__(self, source_list=None, sampling_rate=SAMPLING_RATE):
+        SampleGenerator.__init__(self, sampling_rate)
+        source_list = [] if source_list is None else source_list
+        self._source_list = source_list
+
+    def _get(self):
+        return sum([source.__next__() for source in self._source_list])
+
+    def add(self, source, start_time=None):
+        if start_time:
+            assert start_time > 0
+            self._source_list.append(
+                    DelayedGenerator(source, start_time, self._sampling_rate))
+        else:
+            self._source_list.append(source)
+
