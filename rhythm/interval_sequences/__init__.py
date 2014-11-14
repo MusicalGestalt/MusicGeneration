@@ -36,21 +36,7 @@ class SimpleIntervalGenerator(BaseIntervalGenerator):
         if not last_beat: return self.start_on
         return last_beat + self.num_ticks
 
-class CompositeGenerator:
-    """
-    Given a set of interval generators, this will return
-    a sequence containing events from _each_ generator.
 
-    The tag field is a list of sources for this event,
-    which allows for multiple generators to have an event
-    on the same tick.
-    """
-    def __init__(self, *generators):
-        self.__generators = generators
-
-    def __iter__(self):
-        next_events = {v.tag: None for v in self.__generators}
-        
 
 
 

@@ -20,7 +20,7 @@ class TestDownbeatSequence(unittest.TestCase):
         testTag = "Test"
         sv = SimpleIntervalGenerator(threefour, tag=testTag)
         val = next(sv.__iter__())
-        self.assertEqual(val[0], testTag)
+        self.assertEqual(val[0][0], testTag)
 
 class TestMetronome(unittest.TestCase):
     def do_test_beatgen(self, beat_gen, offset=0):
