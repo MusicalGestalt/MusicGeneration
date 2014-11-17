@@ -62,6 +62,9 @@ class Phrase:
     def notes(self):
         return self.__notes
 
+    def get_num_notes(self):
+        return len(self.__notes)
+        
     def get_time_signature(self):
         return self.__time_signature
 
