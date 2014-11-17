@@ -41,5 +41,19 @@ class TestMetronome(unittest.TestCase):
         self.do_test_beatgen(SimpleIntervalGenerator(fourfour,
             fourfour.ticks_per_beat, fourfour.ticks_per_beat))
         
+class CompositeTest(unittest.TestCase):
+    def test_overlap(self):
+        eighth = SimpleIntervalGenerator(num_ticks=fourfour.eighth_note, 
+            tag="Eighth")
+        quarter = SimpleIntervalGenerator(num_ticks=fourfour.quarter_note,
+            tag="Quarter")
+        composite = CompositeIntervalGenerator(eighth, quarter)
+        for (index, item) in enumerate(composite):
+            if index > 20: break
+            if index % 2 == 0:
+                self.assertEqual(len(item[0]), 2)
+            else:
+                self.assertEqual(len(item[0]), 1)
+
 def main():
     unittest.main()

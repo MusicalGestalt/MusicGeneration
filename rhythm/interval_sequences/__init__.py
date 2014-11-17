@@ -33,11 +33,29 @@ class SimpleIntervalGenerator(BaseIntervalGenerator):
         self.start_on = start_on
     
     def step(self, last_beat):
-        if not last_beat: return self.start_on
+        if last_beat == None: return self.start_on
         return last_beat + self.num_ticks
 
+class CompositeIntervalGenerator:
+    """Given a set of interval generators, it will return the 
+    next tick from ANY of the generators."""
 
+    def __init__(self, *args):
+        self.generators = args
 
+    def __iter__(self):
+        iterators = {g.tag: g.__iter__() for g in self.generators}
+        primed = [next(i) for i in iterators.values()]
+        while True:
+            minv = min(primed, key=lambda x: x[1])[1]
+            results = [p[0] for p in primed if p[1] == minv]
+            resulting_tag = []
+            for tag in results:
+                resulting_tag += tag
+            yield (resulting_tag, minv)
+            primed = [p for p in primed if not p[0] in results]
+            for r in results:
+                primed.append(next(iterators[r[0]]))
 
 
 
