@@ -4,30 +4,22 @@ from ..scales import (major_pentatonic, minor_pentatonic, octaves_for_note,
     minC, maxC, middleC)
 import random
 
-class RandomWalkMelodyGenerator:
-    """Given a key and a scale formula, this iterator returns a random
-    walk through the scale. 
 
-    This isn't quite exactly unit-testable."""
-    def __init__(self, key=middleC, scale=major_pentatonic, max_step=4):
-        """Defaults to generating all of the major pentatonic notes for 
-        the entire possible scale. Using major or minor pentatonics 
-        guarantees that the generated random walk melody will always
-        FIT whatever else is going on, assuming you've got the same 
-        root note."""
+class MelodyGenerator:
+    def __init__(self, key=middleC):
         self.key = key
-        self.starting_notes = octaves_for_note(key)
-        self.possibles = scale(self.starting_notes[0],num_notes=51)
-        self.max_step = 4
 
     def __iter__(self):
-        next_idx = self.possibles.index(self.key)
-        steps = list(range(-1 * self.max_step, self.max_step))
-        while True:
-            yield self.possibles[next_idx]
-            next_idx += random.choice(steps)
-            if next_idx < minC: next_idx = minC
-            if next_idx > maxC: next_idx = maxC
+        return self
+
+    def __next__(self):
+        tone = self._get()
+        assert tone >= minC
+        assert tone <= maxC
+        return tone
+
+    def _get(self):
+        raise Exception("Not implemented")
 
     def key():
         doc = "The root note of the scale."
@@ -39,6 +31,31 @@ class RandomWalkMelodyGenerator:
             del self._key
         return locals()
     key = property(**key())
+
+
+class RandomWalkMelodyGenerator(MelodyGenerator):
+    """Given a key and a scale formula, this iterator returns a random
+    walk through the scale."""
+    def __init__(self, key=middleC, scale=major_pentatonic, max_step=4):
+        """Defaults to generating all of the major pentatonic notes for 
+        the entire possible scale. Using major or minor pentatonics 
+        guarantees that the generated random walk melody will always
+        FIT whatever else is going on, assuming you've got the same 
+        root note."""
+        MelodyGenerator.__init__(self, key)
+        self.starting_notes = octaves_for_note(key)
+        self.possibles = scale(self.starting_notes[0],num_notes=51)
+        self.max_step = 4
+        self.next_idx = self.possibles.index(self.key)
+        self.steps = list(range(-1 * self.max_step, self.max_step))
+
+    def _get(self):
+        old_idx = self.next_idx
+        self.next_idx += random.choice(self.steps)
+        if self.next_idx < minC: self.next_idx = minC
+        if self.next_idx > maxC: self.next_idx = maxC
+        return self.possibles[old_idx]
+
     def starting_notes():
         doc = "Every octave of the root note of the scale"
         def fget(self):
@@ -69,3 +86,19 @@ class RandomWalkMelodyGenerator:
             del self._max_step
         return locals()
     max_step = property(**max_step())
+
+
+class CyclicMelodyGenerator(MelodyGenerator):
+    """Given a set of notes, this iterator cycles through them."""
+    def __init__(self, tone_list):
+        # 'key' is not used, but init with middleC anyway.
+        MelodyGenerator.__init__(self, key=middleC)
+        assert type(tone_list) in [tuple, list]
+        self._tone_list = tone_list
+        self._index = 0
+
+    def _get(self):
+        old_index = self._index
+        self._index = (self._index + 1) % len(self._tone_list)
+        return self._tone_list[old_index]
+

@@ -43,7 +43,7 @@ class WaveFile:
         Values outside this range will be clipped"""
         # Hard-coded to use signed-short data-type
         byte_data = array.array("h", [scale_and_clip_data(d, self._scaling) for d in data])
-        self._wavefile.writeframesraw(byte_data.tostring())
+        self._wavefile.writeframesraw(byte_data.tobytes())
         if correct_nframes:
             # Calling writeframes with no data will ensure the WAV header contains
             # the correct value for nframes.

@@ -54,6 +54,7 @@ class Note:
 
 class Phrase:
     def __init__(self, notes, time_signature):
+        assert type(notes) in [tuple, list]
         self.__notes = notes
         self.__time_signature = time_signature
 
@@ -61,14 +62,19 @@ class Phrase:
     def notes(self):
         return self.__notes
 
-    @property
-    def time_signature(self):
+    def get_num_notes(self):
+        return len(self.__notes)
+        
+    def get_time_signature(self):
         return self.__time_signature
 
     def phrase_endtime(self):
         """On what tick does this phrase end."""
-        return max(map(self.notes, lambda n: n.start_tick + n.duration))
+        return max([n.start_tick + n.duration for n in self.__notes])
 
+    def phrase_endtime_in_seconds(self, beats_per_minute):
+        end_tick = self.phrase_endtime()
+        return self.__time_signature.convert_tick_to_seconds(end_tick, beats_per_minute)
 
 
 
