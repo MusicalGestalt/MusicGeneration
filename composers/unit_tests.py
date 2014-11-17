@@ -14,23 +14,14 @@ class TestComposers(unittest.TestCase):
         melody_generator = CyclicMelodyGenerator([60, 63])
         composer = SimpleComposer(interval_generator, melody_generator)
 
-        print("Phrase 1")
-        phrase = composer.get_phrase() 
-        self.assertEqual(phrase.phrase_endtime(), fourfour.ticks_per_beat*3 + fourfour.eighth_note)
-        self.assertEqual(phrase.get_num_notes(), 4)
-        for (i, note) in enumerate(phrase.notes):
-            self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
-            self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
-            self.assertEqual(note.duration, fourfour.eighth_note)
-
-        print("Phrase 2")
-        phrase = composer.get_phrase() 
-        self.assertEqual(phrase.phrase_endtime(), fourfour.ticks_per_beat*3 + fourfour.eighth_note)
-        self.assertEqual(phrase.get_num_notes(), 4)
-        for (i, note) in enumerate(phrase.notes):
-            self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
-            self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
-            self.assertEqual(note.duration, fourfour.eighth_note)
+        for phrase_id in range(3):
+            phrase = composer.get_phrase() 
+            self.assertEqual(phrase.phrase_endtime(), fourfour.ticks_per_beat*3 + fourfour.eighth_note)
+            self.assertEqual(phrase.get_num_notes(), 4)
+            for (i, note) in enumerate(phrase.notes):
+                self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
+                self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
+                self.assertEqual(note.duration, fourfour.eighth_note)
 
 
 def main():

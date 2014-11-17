@@ -58,16 +58,17 @@ class SimpleComposer(BaseComposer):
         tick_list = []
         tick_list += self._interval_buffer
         self._interval_buffer = []
+        print(tick_list)
         while True:
             (tag, tick) = self._interval_generator.__next__()
             # Normalize time so that the phrase starts at zero
-            tick = tick - self._current_tick
-            print(max_tick, tag, tick)
-            if tick <= max_tick:
-                tick_list.append(tick)
+            corrected_tick = tick - self._current_tick
+            print(max_tick, tag, corrected_tick)
+            if corrected_tick <= max_tick:
+                tick_list.append(corrected_tick)
             else:
                 # Save the generated interval for the next phrase
-                self._interval_buffer = [tick]
+                self._interval_buffer = [tick - self._current_tick - time_sig.ticks_per_measure]
                 break
 
         note_list = []
