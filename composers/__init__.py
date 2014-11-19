@@ -19,6 +19,8 @@ class BaseComposer:
         # The output phrase should be one measure long
         # TODO: confirm this is true
         # (Is this assumption too strict?)
+        # Yes, this assumption is too strict. We should expect a phrase
+        # to be a MULTIPLE of one measure long.
         self._current_tick += next_phrase.get_time_signature().ticks_per_measure
         self._phrase_id += 1
         assert isinstance(next_phrase, Phrase)
