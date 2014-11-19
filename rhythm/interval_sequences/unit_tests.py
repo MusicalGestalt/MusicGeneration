@@ -61,6 +61,24 @@ class TestMetronome(unittest.TestCase):
     def test_offbeat(self):
         self.do_test_beatgen(SimpleIntervalGenerator(fourfour,
             fourfour.ticks_per_beat, fourfour.ticks_per_beat), 32)
+
+class TestPattern(unittest.TestCase):
+    def test_pattern(self):
+        """
+        q r q q qe
+        """
+        pattern = [
+            0,
+            fourfour.quarter_note * 2,
+            fourfour.quarter_note * 3,
+            fourfour.quarter_note * 4,
+            fourfour.quarter_note * 4 + fourfour.eighth_note
+        ]
+        pi = PatternIntervalGenerator(pattern)
+        expected = pattern + [p + fourfour.ticks_per_measure * 2 for p in pattern]
+        for (index, item) in enumerate(pi):
+            if index > 9: break
+            self.assertEqual(item[1], expected[index])
         
 class CompositeTest(unittest.TestCase):
     def test_overlap(self):

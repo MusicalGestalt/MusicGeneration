@@ -1,6 +1,8 @@
 """These classes form a starting point for simple beat generators."""
 
 from .. import (fourfour, TimeSignature)
+from collections import deque
+from math import ceil
 
 class BaseIntervalGenerator:
     """
@@ -43,6 +45,41 @@ class SimpleIntervalGenerator(BaseIntervalGenerator):
     def step(self, last_beat):
         if last_beat is None: return self.start_on
         return last_beat + self.num_ticks
+
+class PatternIntervalGenerator(BaseIntervalGenerator):
+    """Given a sequence of integers, this iterator can repeat
+    a pattern indefinitely. Each tick is a measure-based multiple of the pattern.
+    For example, in 4/4 time, the pattern [1,4,6], will have events on
+    [1,4,6,9,12,15]"""
+    def __init__(self, pattern, time_signature=fourfour, tag="Pattern"):
+        super().__init__(time_signature, tag)
+        assert len(pattern) > 0
+        self.__pattern = pattern
+
+    # sorry, but I couldn't come up with a non-generator
+    # way to do this, but I'm concealing the generator
+    # thus keping the iterator pattern.
+    def __generate(self):
+        measure_length = self.time_signature.ticks_per_measure
+        pattern_length = ceil(max(self.__pattern) / measure_length)
+        live_pattern = deque(self.__pattern)
+        repeat_count = 0
+        def step(t):
+            return t + repeat_count * measure_length * pattern_length
+
+        while(True):
+            if len(live_pattern) > 0:
+                yield live_pattern.popleft()
+            else:
+                repeat_count += 1
+                live_pattern.extend([step(t) for t in self.__pattern])
+
+
+    def step(self, last_beat):
+        if last_beat is None:
+            self.__generator = self.__generate()
+        return next(self.__generator)
+
 
 class CompositeIntervalGenerator:
     """Given a set of interval generators, it will return the 
