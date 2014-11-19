@@ -43,6 +43,11 @@ class SimpleComposer(BaseComposer):
     """
     def __init__(self, interval_generator, melody_generator, default_time_sig=fourfour):
         BaseComposer.__init__(self)
+        # I don't think we want these asserts- let's rely on duck typing
+        # instead
+        # I say this because CompositeIntervalGenerator doesn't inherit
+        # from BIG. We could push the the inheritance hierarchy around
+        # but I feel like that just makes things messy.
         assert isinstance(interval_generator, BaseIntervalGenerator)
         assert isinstance(melody_generator, MelodyGenerator)
         self._interval_generator = interval_generator
