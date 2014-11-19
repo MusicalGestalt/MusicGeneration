@@ -55,20 +55,27 @@ class CompositeIntervalGenerator:
         self.generators = args
 
     def __iter__(self):
-        iterators = {g.tag: g.__iter__() for g in self.generators}
-        primed = [next(i) for i in iterators.values()]
-        while True:
-            minv = min(primed, key=lambda x: x[1])[1]
-            results = [p[0] for p in primed if p[1] == minv]
-            resulting_tag = []
-            for tag in results:
-                resulting_tag += tag
-            yield (resulting_tag, minv)
-            primed = [p for p in primed if not p[0] in results]
-            for r in results:
-                primed.append(next(iterators[r[0]]))
+        self.__start();
+        return self;
 
+    def __reprime(self, consumed_tags):
+        self.__primed = [p for p in self.__primed if not p[0] in consumed_tags]
+        for ct in consumed_tags:
+            next_val = next(self.__iterators[ct[0]])
+            self.__primed.append(next_val)
 
+    def __start(self):
+        #grab the iterators from all of the sub-generators
+        self.__iterators = {g.tag: g.__iter__() for g in self.generators}
+        #prime the pump by getting the next tick from every iterator
+        self.__primed = [next(i) for i in self.__iterators.values()]
 
+    def __next__(self):
+        # look at the primed pump, and find the lowest tick
+        minv = min(self.__primed, key=lambda x: x[1])[1]; 
+        # find all of the generators with an event on that tick
+        result_tags = [p[0] for p in self.__primed if p[1] == minv]
+        self.__reprime(result_tags)
+        return (result_tags, minv)
 
 
