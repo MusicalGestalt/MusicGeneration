@@ -90,10 +90,11 @@ class RandomWalkMelodyGenerator(MelodyGenerator):
 
 class CyclicMelodyGenerator(MelodyGenerator):
     """Given a set of notes, this iterator cycles through them."""
-    def __init__(self, tone_list):
-        # 'key' is not used, but init with middleC anyway.
-        MelodyGenerator.__init__(self, key=middleC)
+    def __init__(self, tone_list, key=None):
         assert type(tone_list) in [tuple, list]
+        # If the key is not provided, make a guess.
+        key = key if key else tone_list[0]
+        MelodyGenerator.__init__(self, key=key)
         self._tone_list = tone_list
         self._index = 0
 
