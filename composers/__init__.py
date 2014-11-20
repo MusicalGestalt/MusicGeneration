@@ -19,6 +19,8 @@ class BaseComposer:
         # The output phrase should be one measure long
         # TODO: confirm this is true
         # (Is this assumption too strict?)
+        # Yes, this assumption is too strict. We should expect a phrase
+        # to be a MULTIPLE of one measure long.
         self._current_tick += next_phrase.get_time_signature().ticks_per_measure
         self._phrase_id += 1
         assert isinstance(next_phrase, Phrase)
@@ -41,6 +43,11 @@ class SimpleComposer(BaseComposer):
     """
     def __init__(self, interval_generator, melody_generator, default_time_sig=fourfour):
         BaseComposer.__init__(self)
+        # I don't think we want these asserts- let's rely on duck typing
+        # instead
+        # I say this because CompositeIntervalGenerator doesn't inherit
+        # from BIG. We could push the the inheritance hierarchy around
+        # but I feel like that just makes things messy.
         assert isinstance(interval_generator, BaseIntervalGenerator)
         assert isinstance(melody_generator, MelodyGenerator)
         self._interval_generator = interval_generator

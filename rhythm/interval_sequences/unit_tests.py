@@ -19,22 +19,6 @@ class TestDownbeatSequence(unittest.TestCase):
     def test_fourfour_call_twice(self):
         gen = SimpleIntervalGenerator(fourfour)
         tpm = fourfour.ticks_per_measure
-        # TODO(Remy): We should talk about what we want these generators
-        # to do. My intuition is that they should simply be streams of data
-        # and if you loop 4 times through it, then loop 4 times again,
-        # it would be the same as looping 8 times once.
-        # Before my changes, looping 4 times to get [X] and then looping
-        # 4 times again to get [Y] would result in [X]==[Y]
-        #
-        # Generators can be messy. Oftentimes we just want a single sample,
-        # and want to be able to simply call .next()
-        # Let's make Iterators, instead of generators.
-        # I've rewritten interval_sequences and tone_sequences to do this.
-
-
-        # Calling the interval generator twice should not return
-        # the same series of values. It should return the next
-        # intervals in the sequence.
         vals = []
         for (i, interval) in enumerate(gen):
             tag, tick = interval
@@ -46,7 +30,6 @@ class TestDownbeatSequence(unittest.TestCase):
             self.assertEqual(tick, (i+10)*tpm)
             vals.append(tick)
             if (i+1) >= 10: break
-        print(vals)
 
     def test_threefour(self):
         self.do_test_beatgen(SimpleIntervalGenerator(threefour))
@@ -78,6 +61,24 @@ class TestMetronome(unittest.TestCase):
     def test_offbeat(self):
         self.do_test_beatgen(SimpleIntervalGenerator(fourfour,
             fourfour.ticks_per_beat, fourfour.ticks_per_beat), 32)
+
+class TestPattern(unittest.TestCase):
+    def test_pattern(self):
+        """
+        q r q q qe
+        """
+        pattern = [
+            0,
+            fourfour.quarter_note * 2,
+            fourfour.quarter_note * 3,
+            fourfour.quarter_note * 4,
+            fourfour.quarter_note * 4 + fourfour.eighth_note
+        ]
+        pi = PatternIntervalGenerator(pattern)
+        expected = pattern + [p + fourfour.ticks_per_measure * 2 for p in pattern]
+        for (index, item) in enumerate(pi):
+            if index > 9: break
+            self.assertEqual(item[1], expected[index])
         
 class CompositeTest(unittest.TestCase):
     def test_overlap(self):

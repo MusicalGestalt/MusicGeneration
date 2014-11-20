@@ -1,6 +1,8 @@
 """These classes form a starting point for simple beat generators."""
 
 from .. import (fourfour, TimeSignature)
+from collections import deque
+from math import ceil
 
 class BaseIntervalGenerator:
     """
@@ -44,6 +46,41 @@ class SimpleIntervalGenerator(BaseIntervalGenerator):
         if last_beat is None: return self.start_on
         return last_beat + self.num_ticks
 
+class PatternIntervalGenerator(BaseIntervalGenerator):
+    """Given a sequence of integers, this iterator can repeat
+    a pattern indefinitely. Each tick is a measure-based multiple of the pattern.
+    For example, in 4/4 time, the pattern [1,4,6], will have events on
+    [1,4,6,9,12,15]"""
+    def __init__(self, pattern, time_signature=fourfour, tag="Pattern"):
+        super().__init__(time_signature, tag)
+        assert len(pattern) > 0
+        self.__pattern = pattern
+
+    # sorry, but I couldn't come up with a non-generator
+    # way to do this, but I'm concealing the generator
+    # thus keping the iterator pattern.
+    def __generate(self):
+        measure_length = self.time_signature.ticks_per_measure
+        pattern_length = ceil(max(self.__pattern) / measure_length)
+        live_pattern = deque(self.__pattern)
+        repeat_count = 0
+        def step(t):
+            return t + repeat_count * measure_length * pattern_length
+
+        while(True):
+            if len(live_pattern) > 0:
+                yield live_pattern.popleft()
+            else:
+                repeat_count += 1
+                live_pattern.extend([step(t) for t in self.__pattern])
+
+
+    def step(self, last_beat):
+        if last_beat is None:
+            self.__generator = self.__generate()
+        return next(self.__generator)
+
+
 class CompositeIntervalGenerator:
     """Given a set of interval generators, it will return the 
     next tick from ANY of the generators.
@@ -55,20 +92,27 @@ class CompositeIntervalGenerator:
         self.generators = args
 
     def __iter__(self):
-        iterators = {g.tag: g.__iter__() for g in self.generators}
-        primed = [next(i) for i in iterators.values()]
-        while True:
-            minv = min(primed, key=lambda x: x[1])[1]
-            results = [p[0] for p in primed if p[1] == minv]
-            resulting_tag = []
-            for tag in results:
-                resulting_tag += tag
-            yield (resulting_tag, minv)
-            primed = [p for p in primed if not p[0] in results]
-            for r in results:
-                primed.append(next(iterators[r[0]]))
+        self.__start();
+        return self;
 
+    def __reprime(self, consumed_tags):
+        self.__primed = [p for p in self.__primed if not p[0] in consumed_tags]
+        for ct in consumed_tags:
+            next_val = next(self.__iterators[ct[0]])
+            self.__primed.append(next_val)
 
+    def __start(self):
+        #grab the iterators from all of the sub-generators
+        self.__iterators = {g.tag: g.__iter__() for g in self.generators}
+        #prime the pump by getting the next tick from every iterator
+        self.__primed = [next(i) for i in self.__iterators.values()]
 
+    def __next__(self):
+        # look at the primed pump, and find the lowest tick
+        minv = min(self.__primed, key=lambda x: x[1])[1]; 
+        # find all of the generators with an event on that tick
+        result_tags = [p[0] for p in self.__primed if p[1] == minv]
+        self.__reprime(result_tags)
+        return (result_tags, minv)
 
 
