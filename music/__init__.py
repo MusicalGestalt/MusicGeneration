@@ -69,8 +69,14 @@ class Phrase:
         return self.__time_signature
 
     def phrase_endtime(self):
-        """On what tick does this phrase end."""
-        return max([n.start_tick + n.duration for n in self.__notes])
+        """On what tick does this phrase end.
+
+        This value should be the last tick of the last measure containing
+        the phrase.
+        """
+        lasttick = max([n.start_tick + n.duration for n in self.__notes])
+        remainder = lasttick % self.__time_signature.ticks_per_measure
+        return lasttick - remainder + self.__time_signature.ticks_per_measure
 
     def phrase_endtime_in_seconds(self, beats_per_minute):
         end_tick = self.phrase_endtime()
