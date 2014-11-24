@@ -6,6 +6,16 @@ from MusicGeneration.theory.tone_sequences import MelodyGenerator
 from MusicGeneration.rhythm import TimeSignature, fourfour
 
 def EventSender(event_name):
+    """This decorator will add a suite of methods to an object
+    to help it send notifications to observer instances. It
+    is, essentially, an observable interface.
+
+    Given an event name, "foo", it will add the following methods
+    to the class it decorates:
+
+    add_foo_observer, remove_foo_observer, get_foo_observers,
+    and most important, send_foo_event, which blasts a notification
+    out to the observers."""
     def wrapper(original_class):
         init = original_class.__init__
         observers_prop = "__{0}_observers".format(event_name)
@@ -19,22 +29,26 @@ def EventSender(event_name):
 
         original_class.__init__ = __init__
         def add(self, observer):
+            """Add an observer for the event."""
             obs_list = getattr(self, observers_prop)
             obs_list.add(observer)
 
         def remove(self, observer):
+            """Remove an observer from the set of observers."""
             obs_list = getattr(self, observers_prop)
             obs_list.remove(observer)
 
 
         def notify(self, event_details):
+            """Notify the observers that an event has occurred."""
             obs_list = getattr(self, observers_prop)
             for o in obs_list:
                 notify_method = getattr(o, "{0}_event".format(event_name))
                 notify_method(event_details)
 
         def get_observers(self):
-            return list(getattr(self, observers_prop))
+            """Get a copy of the set of observers."""
+            return set(getattr(self, observers_prop))
 
         setattr(original_class, add_prop, add)
         setattr(original_class, rem_prop, remove)
