@@ -57,10 +57,18 @@ class SimpleComposer(BaseComposer):
 
     def _get(self, phrase_list=None):
         """Generate the next musical phrase."""
+        # Determine the key and time signature
+        # TODO: Should Phrases store their 'key'? That would make it easier to improvise with them.
+        # key = self._melody_generator.key if not phrase_list else phrase_list[0].get_time_signature()
         time_sig = self._default_time_sig if not phrase_list else phrase_list[0].get_time_signature()
-        max_tick = time_sig.ticks_per_measure - 1
         # Hard-code duration
         duration = time_sig.eighth_note
+        max_tick = time_sig.ticks_per_measure - 1
+
+        # TODO: if we want to have the ability to improvise music using the input
+        # phrase_list, perhaps we need to be able to tell the melody generators
+        # to shift key. ALTERNATIVELY (and more simply), we can just shift the melody
+        # to match the target key!
 
         tick_list = []
         tick_list += self._interval_buffer
