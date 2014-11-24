@@ -23,18 +23,23 @@ class TestComposers(unittest.TestCase):
                 self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
                 self.assertEqual(note.duration, fourfour.eighth_note)
 
+@EventReceiver("test", "event_handler")
 class EventHandler:
     def __init__(self):
         self.got_event = False
         self.details = None
-    def test_event(self, details):
+    def event_handler(self, details):
         self.got_event = True
         self.details = details
+
+@EventReceiver("test", "rename")
+class RenameEventHandler:
+    def rename(self, details): pass
 
 @EventSender("test")
 class EventTest:
     pass
-class TestObservers(unittest.TestCase):
+class TestObservableAndObservers(unittest.TestCase):
 
     def setUp(self):
         self.instance = EventTest()
@@ -44,6 +49,7 @@ class TestObservers(unittest.TestCase):
         self.assertTrue(hasattr(self.instance, "add_test_observer"))
         self.assertTrue(hasattr(self.instance, "remove_test_observer"))
         self.assertTrue(hasattr(self.instance, "send_test_event"))
+        self.assertTrue(hasattr(RenameEventHandler(), "test_event"))
 
     def test_add(self):
         self.instance.add_test_observer(self.handler)
