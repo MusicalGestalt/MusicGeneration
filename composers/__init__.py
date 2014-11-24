@@ -44,7 +44,7 @@ def EventSender(event_name):
             obs_list = getattr(self, observers_prop)
             for o in obs_list:
                 notify_method = getattr(o, "{0}_event".format(event_name))
-                notify_method(event_details)
+                notify_method(self, event_details)
 
         def get_observers(self):
             """Get a copy of the set of observers."""

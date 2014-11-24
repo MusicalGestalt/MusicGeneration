@@ -28,13 +28,13 @@ class EventHandler:
     def __init__(self):
         self.got_event = False
         self.details = None
-    def event_handler(self, details):
+    def event_handler(self, sender, details):
         self.got_event = True
         self.details = details
 
 @EventReceiver("test", "rename")
 class RenameEventHandler:
-    def rename(self, details): pass
+    def rename(self, sender, details): pass
 
 @EventSender("test")
 class EventTest:
@@ -66,8 +66,6 @@ class TestObservableAndObservers(unittest.TestCase):
         self.instance.send_test_event(value)
         self.assertTrue(self.handler.got_event)
         self.assertEqual(self.handler.details, value)
-
-
 
 def main():
     unittest.main()
