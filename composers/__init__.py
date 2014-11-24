@@ -5,10 +5,50 @@ from MusicGeneration.rhythm.interval_sequences import BaseIntervalGenerator
 from MusicGeneration.theory.tone_sequences import MelodyGenerator
 from MusicGeneration.rhythm import TimeSignature, fourfour
 
+def EventSender(event_name):
+    def wrapper(original_class):
+        init = original_class.__init__
+        observers_prop = "__{0}_observers".format(event_name)
+        add_prop = "add_{0}_observer".format(event_name)
+        rem_prop = "remove_{0}_observer".format(event_name)
+        sen_prop = "send_{0}_event".format(event_name)
+        get_prop = "get_{0}_observers".format(event_name)
+        def __init__(self, *args, **kwargs):
+            init(self, *args, **kwargs)
+            setattr(self, observers_prop, set())
+
+        original_class.__init__ = __init__
+        def add(self, observer):
+            obs_list = getattr(self, observers_prop)
+            obs_list.add(observer)
+
+        def remove(self, observer):
+            obs_list = getattr(self, observers_prop)
+            obs_list.remove(observer)
+
+
+        def notify(self, event_details):
+            obs_list = getattr(self, observers_prop)
+            for o in obs_list:
+                notify_method = getattr(o, "{0}_event".format(event_name))
+                notify_method(event_details)
+
+        def get_observers(self):
+            return list(getattr(self, observers_prop))
+
+        setattr(original_class, add_prop, add)
+        setattr(original_class, rem_prop, remove)
+        setattr(original_class, sen_prop, notify)
+        setattr(original_class, get_prop, get_observers)
+        return original_class
+    return wrapper
+
+@EventSender("phrase")
 class BaseComposer:
     def __init__(self):
         self._current_tick = 0
         self._phrase_id = 0
+
 
     def get_phrase(self, phrase_list=None):
         if phrase_list:

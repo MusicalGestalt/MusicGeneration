@@ -16,12 +16,51 @@ class TestComposers(unittest.TestCase):
 
         for phrase_id in range(3):
             phrase = composer.get_phrase() 
-            self.assertEqual(phrase.phrase_endtime(), fourfour.ticks_per_beat*3 + fourfour.eighth_note)
+            self.assertEqual(phrase.phrase_endtime(), 128) #this rounds to the nearest measure end
             self.assertEqual(phrase.get_num_notes(), 4)
             for (i, note) in enumerate(phrase.notes):
                 self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
                 self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
                 self.assertEqual(note.duration, fourfour.eighth_note)
+
+class EventHandler:
+    def __init__(self):
+        self.got_event = False
+        self.details = None
+    def test_event(self, details):
+        self.got_event = True
+        self.details = details
+
+@EventSender("test")
+class EventTest:
+    pass
+class TestObservers(unittest.TestCase):
+
+    def setUp(self):
+        self.instance = EventTest()
+        self.handler = EventHandler()
+
+    def test_method_creation(self):
+        self.assertTrue(hasattr(self.instance, "add_test_observer"))
+        self.assertTrue(hasattr(self.instance, "remove_test_observer"))
+        self.assertTrue(hasattr(self.instance, "send_test_event"))
+
+    def test_add(self):
+        self.instance.add_test_observer(self.handler)
+        self.assertEqual(len(self.instance.get_test_observers()), 1)
+
+    def test_remove(self):
+        self.test_add()
+        self.instance.remove_test_observer(self.handler)
+        self.assertEqual(len(self.instance.get_test_observers()), 0)
+
+    def test_send(self):
+        self.test_add()
+        value = "success"
+        self.instance.send_test_event(value)
+        self.assertTrue(self.handler.got_event)
+        self.assertEqual(self.handler.details, value)
+
 
 
 def main():
