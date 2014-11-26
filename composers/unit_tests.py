@@ -5,6 +5,8 @@ from MusicGeneration.rhythm import fourfour
 from MusicGeneration.rhythm.interval_sequences import SimpleIntervalGenerator
 from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator
 from . import *
+from MusicGeneration.composers.clock import Clock
+import time
 
 
 
@@ -66,6 +68,39 @@ class TestObservableAndObservers(unittest.TestCase):
         self.instance.send_test_event(value)
         self.assertTrue(self.handler.got_event)
         self.assertEqual(self.handler.details, value)
+
+@EventReceiver("tick", "ticked")
+class ClockHandler:
+    def __init__(self):
+        self.ticks = []
+
+    def ticked(self, sender, details):
+        self.ticks.append(details)
+
+class TestClock(unittest.TestCase):
+    """Since time.sleep has unknown accuracy, these tests
+    have to be a little bit sloppy."""  
+    def test_clock(self):
+        handle = ClockHandler()
+        cl = Clock("conductor", 32)
+        cl.add_tick_observer(handle)
+        cl.start()
+        time.sleep(1)
+        cl.stop()
+        self.assertTrue(30 <= len(handle.ticks) <= 34)
+
+    def test_speed_change(self):
+        handle = ClockHandler()
+        cl = Clock("conductor", 32)
+        cl.add_tick_observer(handle)
+        cl.start()
+        time.sleep(0.5)
+        cl.set_speed(64)
+        time.sleep(0.55)
+        cl.stop()
+        self.assertTrue(44 <= len(handle.ticks) <= 52)
+
+
 
 def main():
     unittest.main()
