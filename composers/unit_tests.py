@@ -95,7 +95,7 @@ class TestClock(unittest.TestCase):
         cl.add_tick_observer(handle)
         cl.start()
         time.sleep(0.5)
-        cl.set_speed(64)
+        cl.ticks_per_second = 64
         time.sleep(0.55)
         cl.stop()
         self.assertTrue(44 <= len(handle.ticks) <= 52)
