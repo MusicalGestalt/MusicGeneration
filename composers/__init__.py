@@ -5,13 +5,27 @@ from MusicGeneration.rhythm.interval_sequences import BaseIntervalGenerator
 from MusicGeneration.theory.tone_sequences import MelodyGenerator
 from MusicGeneration.rhythm import TimeSignature, fourfour
 from .events import EventSender, EventReceiver
+
+
 @EventSender("phrase")
 class BaseComposer:
+    """Base Composer class to generate musical phrases.
+
+        Notes on implementation of sub-clases of BaseComposer
+          Since a Phrase object encodes a sequence of notes in
+          absolute time, the phrase returned by a Composer should
+          start at time zero. It can then by shifted in time as needed
+          by the caller.
+
+    """
     def __init__(self):
         self._current_tick = 0
         self._phrase_id = 0
 
-
+    # TODO: since we're using an observer model, this should be updated.
+    # A phrase_list is no longer needed as input, since the composer
+    # should instead listen to other composers if it wants to 'play along'
+    # with them.
     def get_phrase(self, phrase_list=None):
         if phrase_list:
             for phrase in phrase_list:
@@ -32,13 +46,6 @@ class BaseComposer:
         """Generate the next musical phrase."""
         raise Exception("Not implemented")
 
-#
-# Notes on implementation of sub-clases of BaseComposer
-#   Since a Phrase object encodes a sequence of notes in
-#   absolute time, the phrase returned by a Composer should
-#   start at time zero. It can then by shifted in time as needed
-#   by the caller.
-#
 
 class SimpleComposer(BaseComposer):
     """A music composer 

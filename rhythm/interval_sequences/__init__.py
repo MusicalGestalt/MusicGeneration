@@ -28,6 +28,7 @@ class BaseIntervalGenerator:
     def step(self, last_beat):
         raise AttributeError("__step is not implemented on BaseIntervalGenerator")
 
+
 class SimpleIntervalGenerator(BaseIntervalGenerator):
     """Given a time signature and a number of ticks, this 
     generator will output intervals evenly spaced by that number of ticks."""
@@ -46,6 +47,7 @@ class SimpleIntervalGenerator(BaseIntervalGenerator):
         if last_beat is None: return self.start_on
         return last_beat + self.num_ticks
 
+
 class PatternIntervalGenerator(BaseIntervalGenerator):
     """Given a sequence of integers, this iterator can repeat
     a pattern indefinitely. Each tick is a measure-based multiple of the pattern.
@@ -54,31 +56,23 @@ class PatternIntervalGenerator(BaseIntervalGenerator):
     def __init__(self, pattern, time_signature=fourfour, tag="Pattern"):
         super().__init__(time_signature, tag)
         assert len(pattern) > 0
+        # A pattern like [4,6,2] is ambiguous. We could sort it by default
+        # but better to throw an assertion error.
+        assert pattern == sorted(pattern)
+
         self.__pattern = pattern
-
-    # sorry, but I couldn't come up with a non-generator
-    # way to do this, but I'm concealing the generator
-    # thus keping the iterator pattern.
-    def __generate(self):
         measure_length = self.time_signature.ticks_per_measure
-        pattern_length = ceil(max(self.__pattern) / measure_length)
-        live_pattern = deque(self.__pattern)
-        repeat_count = 0
-        def step(t):
-            return t + repeat_count * measure_length * pattern_length
-
-        while(True):
-            if len(live_pattern) > 0:
-                yield live_pattern.popleft()
-            else:
-                repeat_count += 1
-                live_pattern.extend([step(t) for t in self.__pattern])
-
-
+        self.__loop_length = ceil(pattern[-1] / measure_length) * measure_length
+        
     def step(self, last_beat):
         if last_beat is None:
-            self.__generator = self.__generate()
-        return next(self.__generator)
+            self.__index = 0
+            self.__num_cycles = 0
+        else:
+            self.__index = (self.__index + 1) % len(self.__pattern)
+            if self.__index == 0:
+                self.__num_cycles += 1
+        return self.__pattern[self.__index] + self.__loop_length * self.__num_cycles
 
 
 class CompositeIntervalGenerator:
@@ -114,5 +108,4 @@ class CompositeIntervalGenerator:
         result_tags = [p[0] for p in self.__primed if p[1] == minv]
         self.__reprime(result_tags)
         return (result_tags, minv)
-
 

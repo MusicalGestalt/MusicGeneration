@@ -1,13 +1,12 @@
 """Unit tests for composers."""
 
+import time
 import unittest
 from MusicGeneration.rhythm import fourfour
 from MusicGeneration.rhythm.interval_sequences import SimpleIntervalGenerator
 from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator
-from . import *
 from MusicGeneration.composers.clock import Clock
-import time
-
+from . import *
 
 
 class TestComposers(unittest.TestCase):
@@ -25,6 +24,7 @@ class TestComposers(unittest.TestCase):
                 self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
                 self.assertEqual(note.duration, fourfour.eighth_note)
 
+
 @EventReceiver("test", "event_handler")
 class EventHandler:
     def __init__(self):
@@ -41,6 +41,7 @@ class RenameEventHandler:
 @EventSender("test")
 class EventTest:
     pass
+
 class TestObservableAndObservers(unittest.TestCase):
 
     def setUp(self):
@@ -54,11 +55,14 @@ class TestObservableAndObservers(unittest.TestCase):
         self.assertTrue(hasattr(RenameEventHandler(), "test_event"))
 
     def test_add(self):
+        self.assertEqual(len(self.instance.get_test_observers()), 0)
         self.instance.add_test_observer(self.handler)
         self.assertEqual(len(self.instance.get_test_observers()), 1)
 
     def test_remove(self):
+        self.assertEqual(len(self.instance.get_test_observers()), 0)
         self.test_add()
+        self.assertEqual(len(self.instance.get_test_observers()), 1)
         self.instance.remove_test_observer(self.handler)
         self.assertEqual(len(self.instance.get_test_observers()), 0)
 
@@ -69,6 +73,7 @@ class TestObservableAndObservers(unittest.TestCase):
         self.assertTrue(self.handler.got_event)
         self.assertEqual(self.handler.details, value)
 
+
 @EventReceiver("tick", "ticked")
 class ClockHandler:
     def __init__(self):
@@ -76,6 +81,7 @@ class ClockHandler:
 
     def ticked(self, sender, details):
         self.ticks.append(details)
+
 
 class TestClock(unittest.TestCase):
     """Since time.sleep has unknown accuracy, these tests
@@ -99,7 +105,6 @@ class TestClock(unittest.TestCase):
         time.sleep(0.55)
         cl.stop()
         self.assertTrue(44 <= len(handle.ticks) <= 52)
-
 
 
 def main():

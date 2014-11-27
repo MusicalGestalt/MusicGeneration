@@ -3,6 +3,7 @@ from . import EventSender
 import threading
 import time
 
+
 @EventSender("tick")
 class Clock(threading.Thread):
     """A basic clock. It ticks on regularish intervals. 
