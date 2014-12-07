@@ -1,4 +1,4 @@
-"""Unit tests for composers."""
+"""Unit tests for clock, events, composers."""
 
 import time
 import unittest
@@ -8,22 +8,82 @@ from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator
 from MusicGeneration.composers.clock import Clock
 from . import *
 
+# === Tests for Clock ===
 
-class TestComposers(unittest.TestCase):
-    def test_simple_composer(self):
+@EventReceiver("tick", "ticked")
+class ClockHandler:
+    def __init__(self):
+        self.ticks = []
+
+    def ticked(self, sender, details):
+        self.ticks.append(details)
+
+
+class TestClock(unittest.TestCase):
+    """Since time.sleep has unknown accuracy, these tests
+    have to be a little bit sloppy."""  
+    def test_clock(self):
+        handle = ClockHandler()
+        cl = Clock("conductor", 32)
+        cl.add_tick_observer(handle)
+        cl.start()
+        time.sleep(1)
+        cl.stop()
+        self.assertLessEqual(30, len(handle.ticks))
+        self.assertLessEqual(len(handle.ticks), 34)
+
+    def test_speed_change(self):
+        handle = ClockHandler()
+        cl = Clock("conductor", 32)
+        cl.add_tick_observer(handle)
+        cl.start()
+        time.sleep(0.5)
+        cl.ticks_per_second = 64
+        time.sleep(0.55)
+        cl.stop()
+        self.assertLessEqual(44, len(handle.ticks))
+        self.assertLessEqual(len(handle.ticks), 54)
+
+
+# === Tests for Composers ===
+
+@EventReceiver("phrase", "phrase_handler")
+class TestSimpleComposer(unittest.TestCase):
+    def setUp(self):
         interval_generator = SimpleIntervalGenerator(num_ticks=fourfour.ticks_per_beat)
         melody_generator = CyclicMelodyGenerator([60, 63])
-        composer = SimpleComposer(interval_generator, melody_generator)
+        self.composer = SimpleComposer(interval_generator, melody_generator)
+        self.composer.add_phrase_observer(self)
+        self.num_phrases_observed = 0
 
-        for phrase_id in range(3):
-            phrase = composer.get_phrase() 
-            self.assertEqual(phrase.phrase_endtime(), 128) #this rounds to the nearest measure end
-            self.assertEqual(phrase.get_num_notes(), 4)
-            for (i, note) in enumerate(phrase.notes):
-                self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
-                self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
-                self.assertEqual(note.duration, fourfour.eighth_note)
+    def test_simple_composer(self):
+        # Very fast clock (for shorter test)
+        cl = Clock("conductor", 32000)
+        cl.add_tick_observer(self.composer)
+        cl.start()
 
+        # Sleep for (at most) 5 seconds
+        total_sleep = 0.0
+        while self.num_phrases_observed < 3:
+            time.sleep(0.1)
+            total_sleep += 0.1
+            if total_sleep > 5:
+                break
+        self.assertGreaterEqual(self.num_phrases_observed, 3)
+
+    def phrase_handler(self, sender, phrase):
+        self.assertEqual(sender, self.composer)
+        self.num_phrases_observed += 1
+        # Phrase should be one measure lone
+        self.assertEqual(phrase.phrase_endtime(), 128)
+        self.assertEqual(phrase.get_num_notes(), 4)
+        for (i, note) in enumerate(phrase.notes):
+            self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
+            self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
+            self.assertEqual(note.duration, fourfour.eighth_note)
+
+
+# === Tests for Event Sending/Handling ===
 
 @EventReceiver("test", "event_handler")
 class EventHandler:
@@ -72,39 +132,6 @@ class TestObservableAndObservers(unittest.TestCase):
         self.instance.send_test_event(value)
         self.assertTrue(self.handler.got_event)
         self.assertEqual(self.handler.details, value)
-
-
-@EventReceiver("tick", "ticked")
-class ClockHandler:
-    def __init__(self):
-        self.ticks = []
-
-    def ticked(self, sender, details):
-        self.ticks.append(details)
-
-
-class TestClock(unittest.TestCase):
-    """Since time.sleep has unknown accuracy, these tests
-    have to be a little bit sloppy."""  
-    def test_clock(self):
-        handle = ClockHandler()
-        cl = Clock("conductor", 32)
-        cl.add_tick_observer(handle)
-        cl.start()
-        time.sleep(1)
-        cl.stop()
-        self.assertTrue(30 <= len(handle.ticks) <= 34)
-
-    def test_speed_change(self):
-        handle = ClockHandler()
-        cl = Clock("conductor", 32)
-        cl.add_tick_observer(handle)
-        cl.start()
-        time.sleep(0.5)
-        cl.ticks_per_second = 64
-        time.sleep(0.55)
-        cl.stop()
-        self.assertTrue(44 <= len(handle.ticks) <= 52)
 
 
 def main():

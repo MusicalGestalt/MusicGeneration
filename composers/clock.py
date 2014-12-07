@@ -13,7 +13,7 @@ class Clock(threading.Thread):
         which clock object is responsible for the given
         event."""
         self.__tick = 0
-        self.__sleep = 1 / ticks_per_second
+        self.__sleep = 1.0 / ticks_per_second
         super().__init__(name=name, target=self, daemon=True)
         self.__stop = False
 
@@ -31,9 +31,11 @@ class Clock(threading.Thread):
     def ticks_per_second():
         doc = "How many tick events fire every second"
         def fget(self):
+            # TODO(Remy): This seems unusual, returning the sleep time
+            # for ticks_per_second. Should it return 1.0 / __sleep ?
             return self.__sleep
         def fset(self, value):
-            self.__sleep = 1 / value
+            self.__sleep = 1.0 / value
         def fdel(self):
             del self.__sleep
         return locals()

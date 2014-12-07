@@ -8,47 +8,49 @@ from .events import EventSender, EventReceiver
 
 
 @EventSender("phrase")
+@EventReceiver("tick", "next_tick")
 class BaseComposer:
     """Base Composer class to generate musical phrases.
 
         Notes on implementation of sub-clases of BaseComposer
-          Since a Phrase object encodes a sequence of notes in
-          absolute time, the phrase returned by a Composer should
-          start at time zero. It can then by shifted in time as needed
+          (1) Override the _get() method to return Phrase objects
+          (2) Since a Phrase object encodes a sequence of notes in
+          absolute time, the Composer should return a PHRASE THAT
+          STARTS AT TIME ZERO. It can then by shifted in time as needed
           by the caller.
 
     """
     def __init__(self):
         self._current_tick = 0
-        self._phrase_id = 0
 
-    # TODO: since we're using an observer model, this should be updated.
-    # A phrase_list is no longer needed as input, since the composer
-    # should instead listen to other composers if it wants to 'play along'
-    # with them.
-    def get_phrase(self, phrase_list=None):
-        if phrase_list:
-            for phrase in phrase_list:
-                assert isinstance(phrase, Phrase)
-                # TODO: check each phrase is only one measure long (at most)
-        next_phrase = self._get()
-        # The output phrase should be one measure long
-        # TODO: confirm this is true
-        # (Is this assumption too strict?)
-        # Yes, this assumption is too strict. We should expect a phrase
-        # to be a MULTIPLE of one measure long.
-        self._current_tick += next_phrase.get_time_signature().ticks_per_measure
-        self._phrase_id += 1
-        assert isinstance(next_phrase, Phrase)
-        return next_phrase
+    def next_tick(self, sender, tick_id):
+        if tick_id == self._current_tick:
+            next_phrase = self._get()
+            assert isinstance(next_phrase, Phrase)
+            # Increment current tick by length of phrase (will be an integer multiple of a measure)
+            self._current_tick += next_phrase.phrase_endtime()
 
-    def _get(self, phrase_list=None):
+            # TODO(oconaire): It would be nice to confirm that the phrase starts at time zero.
+            # There's no perfect way to do this. Idea: check that the phrase length is <= K measures
+            # and print a warning if not (a weak assumption). Idea 2: For long phrases, check that
+            # there are some notes in the first measure.
+
+            # Send next Phrase to listeners.
+            self.send_phrase_event(next_phrase)
+        else:
+            # We should never skip the trigger tick
+            # nor should we ever forgot to update the trigger tick
+            # once it's been seen.
+            assert tick_id < self._current_tick
+
+    def _get(self):
         """Generate the next musical phrase."""
         raise Exception("Not implemented")
 
 
 class SimpleComposer(BaseComposer):
-    """A music composer 
+    """A music composer that uses a single interval_generator, combined with
+    a single melody_generator to create phrases.
     """
     def __init__(self, interval_generator, melody_generator, default_time_sig=fourfour):
         BaseComposer.__init__(self)
@@ -64,30 +66,24 @@ class SimpleComposer(BaseComposer):
         self._default_time_sig = default_time_sig
         self._interval_buffer = []
 
-    def _get(self, phrase_list=None):
-        """Generate the next musical phrase."""
+    def _get(self):
+        """Generate the next musical phrase, one measure long."""
         # Determine the key and time signature
         # TODO: Should Phrases store their 'key'? That would make it easier to improvise with them.
-        # key = self._melody_generator.key if not phrase_list else phrase_list[0].get_time_signature()
-        time_sig = self._default_time_sig if not phrase_list else phrase_list[0].get_time_signature()
+        time_sig = self._default_time_sig
         # Hard-code duration
         duration = time_sig.eighth_note
         max_tick = time_sig.ticks_per_measure - 1
 
-        # TODO: if we want to have the ability to improvise music using the input
-        # phrase_list, perhaps we need to be able to tell the melody generators
-        # to shift key. ALTERNATIVELY (and more simply), we can just shift the melody
-        # to match the target key!
+        # TODO(oconaire): This code could be simplified by subtracting the tick-shift at the end.
 
         tick_list = []
         tick_list += self._interval_buffer
         self._interval_buffer = []
-        print(tick_list)
         while True:
             (tag, tick) = self._interval_generator.__next__()
             # Normalize time so that the phrase starts at zero
             corrected_tick = tick - self._current_tick
-            print(max_tick, tag, corrected_tick)
             if corrected_tick <= max_tick:
                 tick_list.append(corrected_tick)
             else:
