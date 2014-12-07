@@ -4,7 +4,7 @@ from MusicGeneration.rhythm import fourfour
 
 class TestPhrases(unittest.TestCase):
     def setUp(self):
-        self.empty_phrase = Phrase([])
+        self.empty_phrase = Phrase([], fourfour)
         self.phrase = Phrase([
                 Note(60, 0, fourfour.quarter_note),
                 Note(62, fourfour.whole_note, fourfour.half_note)

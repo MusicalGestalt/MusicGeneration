@@ -74,7 +74,7 @@ class Phrase:
         This value should be the last tick of the last measure containing
         the phrase.
         """
-        lasttick = max([n.start_tick + n.duration for n in self.__notes])
+        lasttick = max([n.start_tick + n.duration for n in self.__notes]) if self.__notes else 0
         remainder = lasttick % self.__time_signature.ticks_per_measure
         return lasttick - remainder + self.__time_signature.ticks_per_measure
 
