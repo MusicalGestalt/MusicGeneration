@@ -47,13 +47,13 @@ class RandomWalkMelodyGenerator(MelodyGenerator):
         self.possibles = scale(self.starting_notes[0],num_notes=51)
         self.max_step = 4
         self.next_idx = self.possibles.index(self.key)
-        self.steps = list(range(-1 * self.max_step, self.max_step))
+        self.steps = list(range(-1 * self.max_step, self.max_step + 1))
 
     def _get(self):
         old_idx = self.next_idx
         self.next_idx += random.choice(self.steps)
-        if self.next_idx < minC: self.next_idx = minC
-        if self.next_idx > maxC: self.next_idx = maxC
+        if self.next_idx < 0: self.next_idx = 0
+        if self.next_idx >= len(self.possibles): self.next_idx = len(self.possibles) - 1
         return self.possibles[old_idx]
 
     def starting_notes():

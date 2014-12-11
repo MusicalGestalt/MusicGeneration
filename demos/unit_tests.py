@@ -5,7 +5,7 @@ from MusicGeneration.rhythm import fourfour
 from MusicGeneration.instruments import WaveInstrument
 from MusicGeneration.sample_generators import SAMPLING_RATE, generators
 from MusicGeneration.rhythm.interval_sequences import SimpleIntervalGenerator
-from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator
+from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator, RandomWalkMelodyGenerator
 from MusicGeneration.composers import SimpleComposer
 from MusicGeneration.composers.clock import BasicClock
 from MusicGeneration import wavefile
@@ -33,8 +33,9 @@ class TestMusicGeneration(unittest.TestCase):
         measure_time = time_signature.seconds_per_measure(bpm)
         sine_instrument = WaveInstrument(bpm, phrase)
 
-        interval_generator = SimpleIntervalGenerator(num_ticks=time_signature.ticks_per_beat)
-        melody_generator = CyclicMelodyGenerator([60, 63, 65])
+        interval_generator = SimpleIntervalGenerator(num_ticks=time_signature.eighth_note)
+        # melody_generator = CyclicMelodyGenerator([60, 63, 65])
+        melody_generator = RandomWalkMelodyGenerator()
         composer = SimpleComposer(interval_generator, melody_generator)
         composer.add_phrase_observer(sine_instrument)
 
