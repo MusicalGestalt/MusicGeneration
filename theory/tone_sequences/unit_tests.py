@@ -37,6 +37,20 @@ class TestCyclic(unittest.TestCase):
         self.assertEqual(data, [30, 36, 42, 48, 54, 60, 66, 72, 78, 84,
                                 90, 30, 36, 42, 48, 54, 60, 66, 72, 78])
 
+    def test_cyclic_repeat(self):
+        melody_gen = CyclicMelodyGenerator([60, 63, 65])
+        data = []
+        for (index, item) in enumerate(melody_gen):
+            data.append(item)
+            if len(data) >= 8: break
+        data2 = []
+        for (index, item) in enumerate(melody_gen):
+            data2.append(item)
+            if len(data2) >= 8: break
+
+        self.assertEqual(data, [60, 63, 65, 60, 63, 65, 60, 63])
+        self.assertEqual(data2, [65, 60, 63, 65, 60, 63, 65, 60])
+
 
 
 def main():

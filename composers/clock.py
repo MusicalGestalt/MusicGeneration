@@ -5,22 +5,35 @@ import time
 
 
 @EventSender("tick")
-class Clock(threading.Thread):
+class BasicClock():
+    """Base Clock class"""
+    def __init__(self, name):
+        """The name is a useful attribute to help remember 
+        which clock object is responsible for the given
+        event."""
+        self.__tick = 0
+
+    def increment(self, loops=1):
+        for loop in range(loops):
+            self.send_tick_event(self.__tick)
+            self.__tick += 1
+
+
+class Clock(threading.Thread, BasicClock):
     """A basic clock. It ticks on regularish intervals. 
     Subject to the limits of time.sleep"""
     def __init__(self, name, ticks_per_second):
         """The name is a useful attribute to help remember 
         which clock object is responsible for the given
         event."""
-        self.__tick = 0
+        threading.Thread.__init__(self, name=name, target=self, daemon=True)
+        BasicClock.__init__(self, name)
         self.__sleep = 1.0 / ticks_per_second
-        super().__init__(name=name, target=self, daemon=True)
         self.__stop = False
 
     def __call__(self):
         while not self.__stop:
-            self.send_tick_event(self.__tick)
-            self.__tick += 1
+            self.increment()
             time.sleep(self.__sleep)
 
     def stop(self):

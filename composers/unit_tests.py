@@ -5,7 +5,7 @@ import unittest
 from MusicGeneration.rhythm import fourfour
 from MusicGeneration.rhythm.interval_sequences import SimpleIntervalGenerator
 from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator
-from MusicGeneration.composers.clock import Clock
+from MusicGeneration.composers.clock import Clock, BasicClock
 from . import *
 
 # === Tests for Clock ===
@@ -51,34 +51,30 @@ class TestClock(unittest.TestCase):
 class TestSimpleComposer(unittest.TestCase):
     def setUp(self):
         interval_generator = SimpleIntervalGenerator(num_ticks=fourfour.ticks_per_beat)
-        melody_generator = CyclicMelodyGenerator([60, 63])
+        melody_generator = CyclicMelodyGenerator([60, 63, 65])
         self.composer = SimpleComposer(interval_generator, melody_generator)
         self.composer.add_phrase_observer(self)
         self.num_phrases_observed = 0
 
     def test_simple_composer(self):
-        # Very fast clock (for shorter test)
-        cl = Clock("conductor", 32000)
+        cl = BasicClock("conductor")
         cl.add_tick_observer(self.composer)
-        cl.start()
-
-        # Sleep for (at most) 5 seconds
-        total_sleep = 0.0
         while self.num_phrases_observed < 3:
-            time.sleep(0.1)
-            total_sleep += 0.1
-            if total_sleep > 5:
-                break
+            cl.increment(32)
         self.assertGreaterEqual(self.num_phrases_observed, 3)
 
     def phrase_handler(self, sender, phrase):
         self.assertEqual(sender, self.composer)
         self.num_phrases_observed += 1
-        # Phrase should be one measure lone
+        # Phrase should be one measure long
         self.assertEqual(phrase.phrase_endtime(), 128)
         self.assertEqual(phrase.get_num_notes(), 4)
+        required = [60, 63, 65]
+        shift = ((self.num_phrases_observed-1) * 4) % 3;
+        print("Observed phrase %d" % self.num_phrases_observed)
         for (i, note) in enumerate(phrase.notes):
-            self.assertEqual(note.tone, 60 if (i % 2) == 0 else 63)
+            print("  Note %d: %d" % (i+1, note.tone))
+            self.assertEqual(note.tone, required[(shift+i) % 3])
             self.assertEqual(note.start_tick, i * fourfour.ticks_per_beat)
             self.assertEqual(note.duration, fourfour.eighth_note)
 

@@ -74,6 +74,9 @@ class TimeSignature:
     def convert_tick_to_seconds(self, tick, beats_per_minute):
         return convert_tick_to_seconds(tick, self, beats_per_minute)
 
+    def seconds_per_measure(self, beats_per_minute):
+        return convert_tick_to_seconds(self.ticks_per_measure, self, beats_per_minute)
+
 
 fourfour = TimeSignature()
 twofour = TimeSignature(2)
