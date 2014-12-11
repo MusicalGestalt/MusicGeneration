@@ -74,9 +74,12 @@ class Phrase:
         This value should be the last tick of the last measure containing
         the phrase.
         """
-        lasttick = max([n.start_tick + n.duration for n in self.__notes]) if self.__notes else 0
+        if not self.__notes: return self.__time_signature.ticks_per_measure
+        lasttick = max([n.start_tick + n.duration for n in self.__notes])
         remainder = lasttick % self.__time_signature.ticks_per_measure
-        return lasttick - remainder + self.__time_signature.ticks_per_measure
+        if remainder > 0:
+            return lasttick - remainder + self.__time_signature.ticks_per_measure
+        return lasttick
 
     def phrase_endtime_in_seconds(self, beats_per_minute):
         end_tick = self.phrase_endtime()

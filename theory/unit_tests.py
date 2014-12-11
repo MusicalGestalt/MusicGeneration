@@ -4,6 +4,7 @@ import unittest
 
 from . import scales
 from . import harmonies
+from . import utils
 
 
 class TestScalesLib(unittest.TestCase):
@@ -32,11 +33,15 @@ class TestScalesLib(unittest.TestCase):
           self.assertIsNotNone(scales.get_scale_intervals(scale_name))
 
 
-
 class TestHarmoniesLib(unittest.TestCase):
-
     def test_scale(self):
         self.assertEqual(harmonies.power_chord(scales.middleC), (60, 67))
+
+
+class TestUtilsLib(unittest.TestCase):
+    def test_tone_to_freq(self):
+        self.assertAlmostEqual(utils.ToneToFrequency(scales.middleC), 261.625565, places=3)
+        self.assertAlmostEqual(utils.ToneToFrequency(69), 440, places=3)
 
 
 def main():

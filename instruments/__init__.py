@@ -1,10 +1,13 @@
 """Instrument Library: Classes that produce wave data from musical Phrases."""
 
-from MusicGeneration.sample_generators import generators, envelopes, SAMPLING_RATE
-from MusicGeneration.music import Phrase
+from MusicGeneration.composers.events import EventReceiver
 from MusicGeneration.rhythm import TimeSignature
+from MusicGeneration.music import Phrase
+from MusicGeneration.sample_generators import generators, envelopes, SAMPLING_RATE
+from MusicGeneration.theory.utils import ToneToFrequency
 
 
+@EventReceiver("phrase", "set_next_phrase")
 class Instrument(generators.SampleGenerator):
     def __init__(self, bpm, phrase=None, sampling_rate=SAMPLING_RATE):
         generators.SampleGenerator.__init__(self, sampling_rate)
@@ -15,17 +18,9 @@ class Instrument(generators.SampleGenerator):
     def _get(self):
         raise Exception("Not implemented.")
 
-    def set_next_phrase(self, phrase):
+    def set_next_phrase(self, sender, phrase):
       """After the current phrase has played, this phrase will be played."""
       self._next_phrase = phrase
-
-
-# TODO: Move this function to 'theory'
-def ToneToFrequency(tone):
-  """Convert a tone to a frequency."""
-  # 60=C4 ==> 261.63Hz
-  # 69=A4 ==> 440Hz
-  return 440.0 * (2.0 ** (1.0/12.0)) ** (tone - 69)
 
 
 def get_synth_note_generator(wave_class, freq, duration, sampling_rate):
@@ -58,18 +53,18 @@ class WaveInstrument(Instrument):
             duration = convert_tick_to_seconds(note.duration)
             self._source.add(get_synth_note_generator(self._wave_class, freq, duration, self._sampling_rate),
                              start_time=start_time)
-        # TODO: By looping on an integer number of samples, we might have
+        # TODO: Think about this some more: By looping on an integer number of samples, we might have
         # drift between this and a source that kept full float precision.
-        # Think about this some more.
-        self._remaining_samples = int(self._current_phrase.phrase_endtime() * self._sampling_rate)
+        self._remaining_samples = int(convert_tick_to_seconds(self._current_phrase.phrase_endtime()) * self._sampling_rate)
 
     def _get(self):
         if self._remaining_samples <= 0:
-          if self._next_phrase:
-            self._current_phrase = self._next_phrase
-            self._next_phrase = None
-          self._setup_sample_source()
+            if self._next_phrase:
+                self._current_phrase = self._next_phrase
+                self._next_phrase = None
+            self._setup_sample_source()
 
+        self._remaining_samples -= 1
         return self._source.__next__()
 
 

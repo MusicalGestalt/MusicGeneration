@@ -51,7 +51,7 @@ class SineWaveGenerator(SampleGenerator):
     def __init__(self, freq, sampling_rate=SAMPLING_RATE):
         SampleGenerator.__init__(self, sampling_rate)
         self._freq = freq
-        self._freq_constant = 2 * math.pi * self._freq # / self._sampling_rate
+        self._freq_constant = 2 * math.pi * self._freq
 
     def _get(self):
         return math.sin(self._freq_constant * self._time)
