@@ -82,6 +82,8 @@ class CompositeIntervalGenerator:
     If two generators have an event on the same tick, the tag 
     field of the tuple will contain both."""
 
+    # TODO(oconaire): Rewrite this to be a BaseIntervalGenerator. 
+
     def __init__(self, *args):
         self.generators = args
 

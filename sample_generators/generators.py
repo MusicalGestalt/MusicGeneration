@@ -96,13 +96,15 @@ class DelayedGenerator(SampleGenerator):
 
 class MixerGenerator(SampleGenerator):
     """A sample generator to combines other generators."""
-    def __init__(self, source_list=None, sampling_rate=SAMPLING_RATE):
+    def __init__(self, source_list=None, scaling=1.0, sampling_rate=SAMPLING_RATE):
         SampleGenerator.__init__(self, sampling_rate)
         source_list = [] if source_list is None else source_list
         self._source_list = source_list
+        self._scaling = scaling
 
     def _get(self):
-        return sum([source.__next__() for source in self._source_list])
+        if not self._source_list: return 0.0
+        return self._scaling * sum([source.__next__() for source in self._source_list])
 
     def add(self, source, start_time=None):
         if start_time:
