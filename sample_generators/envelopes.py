@@ -9,8 +9,13 @@ class Envelope(SampleGenerator):
     def __init__(self, source, sampling_rate=SAMPLING_RATE):
         SampleGenerator.__init__(self, sampling_rate)
         self._source = source.__iter__()
+        # Has the envelope completed (i.e. will it be zero hereafter)
+        self._finished = False
 
     def _get(self):
+        # Returns early if finished, which is efficient but will no longer
+        # be requesting any samples from _source.
+        if self._finished: return 0.0
         return self._source.__next__() * self._get_multiplier()
 
     def _get_multiplier(self):
@@ -48,6 +53,7 @@ class StandardEnvelope(Envelope):
             return self._level
         elif self._time < self._release:
             return self._level * (1.0 - (self._time - self._sustain) / (self._release - self._sustain))
+        self._finished = True
         return 0.0
 
 

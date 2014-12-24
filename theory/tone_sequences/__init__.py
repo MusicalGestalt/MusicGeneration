@@ -44,7 +44,8 @@ class RandomWalkMelodyGenerator(MelodyGenerator):
         root note."""
         MelodyGenerator.__init__(self, key)
         self.starting_notes = octaves_for_note(key)
-        self.possibles = scale(self.starting_notes[0],num_notes=51)
+        self.possibles = scale(self.starting_notes[0], num_notes=51)
+        self.possibles = [n for n in self.possibles if n >= minC and n <= maxC]
         self.max_step = 4
         self.next_idx = self.possibles.index(self.key)
         self.steps = list(range(-1 * self.max_step, self.max_step + 1))
