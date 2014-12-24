@@ -57,6 +57,10 @@ class WaveInstrument(Instrument):
         # drift between this and a source that kept full float precision.
         self._remaining_samples = int(convert_tick_to_seconds(self._current_phrase.phrase_endtime()) * self._sampling_rate)
 
+        # TODO(oconaire): We still have the issue that notes that are trailing from the last phrase, do not get heard in the
+        # next phrase. This creates an artificial cut between phrases. Ideally, the mixer generator keeps getting new notes
+        # added to it.
+
     def _get(self):
         if self._remaining_samples <= 0:
             if self._next_phrase:
@@ -66,6 +70,3 @@ class WaveInstrument(Instrument):
 
         self._remaining_samples -= 1
         return self._source.__next__()
-
-
-

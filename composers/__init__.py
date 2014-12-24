@@ -52,7 +52,7 @@ class SimpleComposer(BaseComposer):
     """A music composer that uses a single interval_generator, combined with
     a single melody_generator to create phrases.
     """
-    def __init__(self, interval_generator, melody_generator, default_time_sig=fourfour):
+    def __init__(self, interval_generator, melody_generator, default_time_sig=fourfour, default_duration=None):
         BaseComposer.__init__(self)
         # I don't think we want these asserts- let's rely on duck typing
         # instead
@@ -64,6 +64,7 @@ class SimpleComposer(BaseComposer):
         self._interval_generator = interval_generator
         self._melody_generator = melody_generator
         self._default_time_sig = default_time_sig
+        self._default_duration = default_duration if default_duration else default_time_sig.eighth_note
         self._interval_buffer = []
 
     def _get(self):
@@ -71,11 +72,14 @@ class SimpleComposer(BaseComposer):
         # Determine the key and time signature
         # TODO: Should Phrases store their 'key'? That would make it easier to improvise with them.
         time_sig = self._default_time_sig
-        # Hard-code duration
-        duration = time_sig.eighth_note
-        max_tick = time_sig.ticks_per_measure - 1
+        duration = self._default_duration
+        past_max_tick = time_sig.ticks_per_measure
 
         # TODO(oconaire): This code could be simplified by subtracting the tick-shift at the end.
+
+        # TODO(oconaire): It's not clear what should happen if we have a note that starts in
+        # this measure, but goes on into the next measure. A hack would be to truncate the last note
+        # in the phrase (which is what I do below)
 
         tick_list = []
         tick_list += self._interval_buffer
@@ -84,7 +88,7 @@ class SimpleComposer(BaseComposer):
             (tag, tick) = self._interval_generator.__next__()
             # Normalize time so that the phrase starts at zero
             corrected_tick = tick - self._current_tick
-            if corrected_tick <= max_tick:
+            if corrected_tick < past_max_tick:
                 tick_list.append(corrected_tick)
             else:
                 # Save the generated interval for the next phrase
@@ -94,7 +98,11 @@ class SimpleComposer(BaseComposer):
         note_list = []
         for tick in tick_list:
             tone = self._melody_generator.__next__()
-            note_list.append(Note(tone, tick, duration))        
+            if (tick + duration) < past_max_tick:
+                note_list.append(Note(tone, tick, duration))
+            else:
+                # Truncate last note
+                note_list.append(Note(tone, tick, past_max_tick - tick - 1))
 
         phrase = Phrase(note_list, time_sig)
         return phrase

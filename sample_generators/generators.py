@@ -1,6 +1,7 @@
 """Various sample generator classes."""
 
 import math
+import random
 from . import SAMPLING_RATE
 
 
@@ -79,6 +80,28 @@ class SawtoothWaveGenerator(SampleGenerator):
     def _get(self):
         cycle_position = (self._time % self._cycle_time) / self._cycle_time
         return (cycle_position * 2) - 1
+
+
+class GuitarWaveGenerator(SampleGenerator):
+    """A Guitar-string sample generator."""
+    def __init__(self, freq, sampling_rate=SAMPLING_RATE):
+        SampleGenerator.__init__(self, sampling_rate)
+        self._freq = freq
+        self._setup_buffer()
+
+    def _setup_buffer(self):
+        self._bufsize = int(self._sampling_rate / self._freq)
+        assert self._bufsize > 0
+        # TODO(oconaire): We can also initialize this with a squarewave or sawtooth
+        # wave to get a different guitar string sound.
+        self._buffer = [random.uniform(-1.0, 1.0) for i in range(self._bufsize)]
+        self._bufindex = 0;
+
+    def _get(self):
+        value = (self._buffer[self._bufindex] + self._buffer[(self._bufindex+1) % self._bufsize]) / 2.0;
+        self._buffer[self._bufindex] = value;
+        self._bufindex = (self._bufindex + 1) % self._bufsize;
+        return value
 
 
 class DelayedGenerator(SampleGenerator):

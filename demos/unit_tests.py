@@ -28,10 +28,11 @@ from MusicGeneration import wavefile
 
 def get_random_notes_in_scale(root, scale_name, num_notes):
     # Ensures the test is deterministic
-    random.seed(100)
+    random.seed(1024)
     intervals = scales.get_scale_intervals(scale_name)
     note_list = scales.scale(root, intervals, num_notes=16)
-    return [random.choice(note_list) for i in range(num_notes)]
+    # Sort notes to get an ascending set.
+    return sorted([random.choice(note_list) for i in range(num_notes)])
 
 
 class TestMusicGeneration(unittest.TestCase):
@@ -64,27 +65,26 @@ class TestMusicGeneration(unittest.TestCase):
 
         # setup instruments
         sine_instrument1 = WaveInstrument(bpm, None)
-        sine_instrument2 = WaveInstrument(bpm, None)
-        # sine_instrument2 = WaveInstrument(bpm, None, wave_class=generators.SquareWaveGenerator)
+        sine_instrument2 = WaveInstrument(bpm, None, wave_class=generators.GuitarWaveGenerator)
 
         interval_generator = SimpleIntervalGenerator(num_ticks=time_signature.eighth_note)
-        melody_generator = CyclicMelodyGenerator(get_random_notes_in_scale(36, "minor_pentatonic", num_notes=5))
+        melody_generator = CyclicMelodyGenerator(get_random_notes_in_scale(48, "minor_pentatonic", num_notes=8))
         composer1 = SimpleComposer(interval_generator, melody_generator, default_time_sig=time_signature)
         composer1.add_phrase_observer(sine_instrument1)
 
         interval_generator = SimpleIntervalGenerator(num_ticks=time_signature.eighth_note)
-        melody_generator = CyclicMelodyGenerator(get_random_notes_in_scale(60, "minor_pentatonic", num_notes=7))
-        composer2 = SimpleComposer(interval_generator, melody_generator, default_time_sig=time_signature)
+        melody_generator = CyclicMelodyGenerator(get_random_notes_in_scale(48, "minor_pentatonic", num_notes=7))
+        composer2 = SimpleComposer(interval_generator, melody_generator, default_time_sig=time_signature, default_duration=time_signature.quarter_note)
         composer2.add_phrase_observer(sine_instrument2)
 
         measure_time = time_signature.seconds_per_measure(bpm)
-        delayed_instrument2 = generators.DelayedGenerator(sine_instrument2, measure_time / 16.0)
+        delayed_instrument2 = generators.DelayedGenerator(sine_instrument2, measure_time * 4)
         mixer = generators.MixerGenerator([sine_instrument1, delayed_instrument2], scaling=0.3)
 
         cl = BasicClock("conductor")
         cl.add_tick_observer(composer1)
         cl.add_tick_observer(composer2)
-        num_measures = 4
+        num_measures = 16
         wave_file = wavefile.WaveFile("demo_music2.wav")
         for loop in range(num_measures):
             cl.increment(time_signature.ticks_per_measure)
