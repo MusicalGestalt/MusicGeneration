@@ -85,19 +85,19 @@ class TestPattern(unittest.TestCase):
 class TestParametric(unittest.TestCase):
     def test_parametric(self):
         # Bias test
-        pi = ParametricIntervalGenerator(density=0.5, bias=-1, focus=None)
+        pi = ParametricIntervalGenerator(density=0.5, bias=-1, swing=None)
         expected_intervals = [0, 8, 16, 24, 32, 40, 48, 56]
         self.assertEqual(pi.pattern, expected_intervals)
-        pi = ParametricIntervalGenerator(density=0.5, bias=1, focus=None)
+        pi = ParametricIntervalGenerator(density=0.5, bias=1, swing=None)
         self.assertEqual(pi.pattern, [i+64 for i in expected_intervals])
         # Focus test
-        pi = ParametricIntervalGenerator(density=0.25, bias=None, focus=0.0)
+        pi = ParametricIntervalGenerator(density=0.25, bias=None, swing=1.0)
         self.assertTrue(0 not in pi.pattern)
         self.assertTrue(64 not in pi.pattern)
-        pi = ParametricIntervalGenerator(density=0.25, bias=None, focus=1.0)
+        pi = ParametricIntervalGenerator(density=0.25, bias=None, swing=0.0)
         expected_intervals = [0, 32, 64, 96]
         self.assertEqual(pi.pattern, expected_intervals)
-        pi = ParametricIntervalGenerator(density=0.5, bias=0.0, focus=0.4)
+        pi = ParametricIntervalGenerator(density=0.5, bias=0.0, swing=0.6)
         self.assertEqual(len(pi.pattern), 8)
         # TODO(oconaire): Add tests with different time signatures.
 

@@ -88,17 +88,20 @@ class ParametricIntervalGenerator(PatternIntervalGenerator):
         bias = the difference between the density of the first half and the second (range: -1...1)
             e.g. a bias of zero would have an equal number of intervals in the first and second
             halves of a measure.
-        focus = a measure of how concentrated the intervals are on the 'main' beats
+        swing = a measure of how concentrated the intervals are on the 'main' beats
     """
-    def __init__(self, density, bias=None, focus=None, resolution=4, time_signature=fourfour, tag="Parametric"):
+    def __init__(self, density, bias=None, swing=None, resolution=4, time_signature=fourfour, tag="Parametric"):
         assert int(resolution) == resolution
         num_slots = time_signature.beats_per_measure * resolution
         # This check is in place to prevent expensive computation;
         # It can be lifted once I implement a more efficient algorithm.
         assert num_slots <= 16
         assert density > 0 and density <= 1.0
+        assert swing is None or (0.0 <= swing and swing <= 1.0)
         num_triggers = int(density * num_slots)
         assert num_triggers > 0
+        # 'focus' is defined as the opposite of 'swing'
+        focus = None if swing is None else 1.0 - swing
         focus_weights = self.__get_focus_weights(num_slots)
         min_focus = sum(sorted(focus_weights)[:num_triggers])
         max_focus = sum(sorted(focus_weights, reverse=True)[:num_triggers])

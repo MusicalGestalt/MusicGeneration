@@ -6,8 +6,9 @@ from . import *
 from MusicGeneration.rhythm import fourfour
 from MusicGeneration.instruments import WaveInstrument
 from MusicGeneration.sample_generators import SAMPLING_RATE, generators
-from MusicGeneration.rhythm.interval_sequences import SimpleIntervalGenerator
-from MusicGeneration.theory.tone_sequences import CyclicMelodyGenerator, RandomWalkMelodyGenerator
+from MusicGeneration.rhythm.interval_sequences import SimpleIntervalGenerator, ParametricIntervalGenerator
+from MusicGeneration.theory.tone_sequences import (CyclicMelodyGenerator, RandomWalkMelodyGenerator,
+    ParametricMelodyGenerator)
 from MusicGeneration.theory import scales
 from MusicGeneration.composers import SimpleComposer
 from MusicGeneration.composers.clock import BasicClock
@@ -59,7 +60,7 @@ class TestMusicGeneration(unittest.TestCase):
             wave_file.writeData(data)
 
     def test_music2(self):
-        """Two instruments playing repeating patterns of 5 and 7 notes respectively."""
+        """Two instruments playing repeating patterns of 8 and 7 notes respectively."""
         time_signature = fourfour
         bpm = 100
 
@@ -67,8 +68,11 @@ class TestMusicGeneration(unittest.TestCase):
         sine_instrument1 = WaveInstrument(bpm, None)
         sine_instrument2 = WaveInstrument(bpm, None, wave_class=generators.GuitarWaveGenerator)
 
-        interval_generator = SimpleIntervalGenerator(num_ticks=time_signature.eighth_note)
-        melody_generator = CyclicMelodyGenerator(get_random_notes_in_scale(48, "minor_pentatonic", num_notes=8))
+        # interval_generator = SimpleIntervalGenerator(num_ticks=time_signature.eighth_note)
+        # melody_generator = CyclicMelodyGenerator(get_random_notes_in_scale(48, "minor_pentatonic", num_notes=8))
+        interval_generator = ParametricIntervalGenerator(resolution=2, density=0.5, bias=-0.5, swing=0.25)
+        melody_generator = ParametricMelodyGenerator(key=48, length=8, scale=scales.minor_pentatonic, num_unique_notes=8,
+                                                     min_note=48, max_note=72, ascend_fraction=1.0)
         composer1 = SimpleComposer(interval_generator, melody_generator, default_time_sig=time_signature)
         composer1.add_phrase_observer(sine_instrument1)
 
