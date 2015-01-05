@@ -1,4 +1,4 @@
-
+import audiolazy
 import array
 import wave
 
@@ -10,12 +10,12 @@ SAMPLING_RATE = 44100
 
 
 def scale_and_clip_data(d, scaling):
-  v = int(d * scaling)
-  if v >= scaling:
-    return scaling - 1
-  if v < -scaling:
-    return -scaling
-  return v
+    v = int(d * scaling)
+    if v >= scaling:
+        return scaling - 1
+    if v < -scaling:
+        return -scaling
+    return v
 
 
 class WaveFile:
