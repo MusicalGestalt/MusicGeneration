@@ -17,6 +17,26 @@ def scale_and_clip_data(d, scaling):
         return -scaling
     return v
 
+class WaveStream:
+    """Class to wrap the AudioLazy API in an object that mirrors the wavefile approach."""
+
+    def __init__(self):
+        pass
+
+    def setparams(self, param_tuple):
+        pass
+
+    def writeframesraw(self, bytes):
+        pass
+
+    def writeframes(self, bytes):
+        pass
+
+    def open(self, filename, mode):
+        pass
+
+    def close():
+        pass
 
 class WaveFile:
     """Class to facilitate simple WAV file output from float data.
