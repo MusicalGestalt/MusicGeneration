@@ -30,15 +30,16 @@ class WaveStream:
 
     def writeframesraw(self, bytes):
         self.__basestream.append(audiolazy.Stream(bytes))
+        self.__wavefile.writeframesraw(bytes)
         if not self.__playing:
             self.play()
 
     def writeframes(self, bytes):
         self.__basestream.append(audiolazy.Stream(bytes))
+        self.__wavefile.writeframes(bytes)
 
     @staticmethod
     def open(filename, mode):
-        audiolazy.chunks.size = 1 #required for jack API
         return WaveStream(filename, mode)
 
     def close(self):
