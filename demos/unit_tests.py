@@ -14,6 +14,7 @@ from MusicGeneration.composers import SimpleComposer
 from MusicGeneration.composers.clock import BasicClock
 from MusicGeneration import wavefile
 
+LIVE_AUDIO_TEST = True
 
 # class TimedWaveWriter:
 #     def __init__(self, filename, instrument):
@@ -94,6 +95,7 @@ class TestMusicGeneration(unittest.TestCase):
             cl.increment(time_signature.ticks_per_measure)
             data = mixer.get(int(SAMPLING_RATE * measure_time))
             wave_file.writeData(data)
+
 
 
 def main():

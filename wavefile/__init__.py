@@ -23,26 +23,34 @@ class WaveStream:
     def __init__(self, filename, mode):
         self.__wavefile = wave.open(filename, mode)
         self.__basestream = audiolazy.Stream([])
+        self.__playing = False
 
     def setparams(self, param_tuple):
         self.__wavefile.setparams(param_tuple)
 
     def writeframesraw(self, bytes):
         self.__basestream.append(audiolazy.Stream(bytes))
+        if not self.__playing:
+            self.play()
 
     def writeframes(self, bytes):
         self.__basestream.append(audiolazy.Stream(bytes))
 
     @staticmethod
     def open(filename, mode):
+        audiolazy.chunks.size = 1 #required for jack API
         return WaveStream(filename, mode)
 
     def close(self):
         self.__wavefile.close()
 
     def play(self):
-        with audiolazy.AudioIO(True) as player:
+        self.__playing = True
+        with audiolazy.AudioIO() as player:
             player.play(self.__basestream)
+
+    def isplaying(self):
+        return self.__playing
 
 class WaveFile:
     """Class to facilitate simple WAV file output from float data.
