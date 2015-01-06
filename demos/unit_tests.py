@@ -89,7 +89,7 @@ class TestMusicGeneration(unittest.TestCase):
         cl.add_tick_observer(composer1)
         cl.add_tick_observer(composer2)
         num_measures = 16
-        wave_file = wavefile.WaveFile("demo_music2.wav")
+        wave_file = wavefile.WaveFile("demo_music2.wav", audio_factory=wavefile.WaveStream)
         for loop in range(num_measures):
             cl.increment(time_signature.ticks_per_measure)
             data = mixer.get(int(SAMPLING_RATE * measure_time))

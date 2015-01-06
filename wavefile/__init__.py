@@ -22,22 +22,27 @@ class WaveStream:
 
     def __init__(self, filename, mode):
         self.__wavefile = wave.open(filename, mode)
+        self.__basestream = audiolazy.Stream([])
 
     def setparams(self, param_tuple):
         self.__wavefile.setparams(param_tuple)
 
     def writeframesraw(self, bytes):
-        pass
+        self.__basestream.append(audiolazy.Stream(bytes))
 
     def writeframes(self, bytes):
-        pass
+        self.__basestream.append(audiolazy.Stream(bytes))
 
     @staticmethod
     def open(filename, mode):
         return WaveStream(filename, mode)
 
-    def close():
-        pass
+    def close(self):
+        self.__wavefile.close()
+
+    def play(self):
+        with audiolazy.AudioIO(True) as player:
+            player.play(self.__basestream)
 
 class WaveFile:
     """Class to facilitate simple WAV file output from float data.
@@ -50,8 +55,8 @@ class WaveFile:
         wave_file.writeData(data)
     """
 
-    def __init__(self, filename):
-        self._wavefile = wave.open(filename, 'wb')
+    def __init__(self, filename, audio_factory=wave):
+        self._wavefile = audio_factory.open(filename, 'wb')
         sample_width = SAMPLING_16BIT
         self._wavefile.setparams((MONO, sample_width, SAMPLING_RATE, 0, "NONE", "not compressed"))
         self._scaling = 2 ** ((sample_width * 8) - 1)
