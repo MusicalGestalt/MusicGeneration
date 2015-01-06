@@ -20,11 +20,11 @@ def scale_and_clip_data(d, scaling):
 class WaveStream:
     """Class to wrap the AudioLazy API in an object that mirrors the wavefile approach."""
 
-    def __init__(self):
-        pass
+    def __init__(self, filename, mode):
+        self.__wavefile = wave.open(filename, mode)
 
     def setparams(self, param_tuple):
-        pass
+        self.__wavefile.setparams(param_tuple)
 
     def writeframesraw(self, bytes):
         pass
@@ -32,8 +32,9 @@ class WaveStream:
     def writeframes(self, bytes):
         pass
 
-    def open(self, filename, mode):
-        pass
+    @staticmethod
+    def open(filename, mode):
+        return WaveStream(filename, mode)
 
     def close():
         pass
