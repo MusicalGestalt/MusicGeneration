@@ -62,6 +62,7 @@ class TestMetronome(unittest.TestCase):
         self.do_test_beatgen(SimpleIntervalGenerator(fourfour,
             fourfour.ticks_per_beat, fourfour.ticks_per_beat), 32)
 
+
 class TestPattern(unittest.TestCase):
     def test_pattern(self):
         """
@@ -79,8 +80,29 @@ class TestPattern(unittest.TestCase):
         for (index, item) in enumerate(pi):
             if index > 9: break
             self.assertEqual(item[1], expected[index])
+
+
+class TestParametric(unittest.TestCase):
+    def test_parametric(self):
+        # Bias test
+        pi = ParametricIntervalGenerator(density=0.5, bias=-1, swing=None)
+        expected_intervals = [0, 8, 16, 24, 32, 40, 48, 56]
+        self.assertEqual(pi.pattern, expected_intervals)
+        pi = ParametricIntervalGenerator(density=0.5, bias=1, swing=None)
+        self.assertEqual(pi.pattern, [i+64 for i in expected_intervals])
+        # Focus test
+        pi = ParametricIntervalGenerator(density=0.25, bias=None, swing=1.0)
+        self.assertTrue(0 not in pi.pattern)
+        self.assertTrue(64 not in pi.pattern)
+        pi = ParametricIntervalGenerator(density=0.25, bias=None, swing=0.0)
+        expected_intervals = [0, 32, 64, 96]
+        self.assertEqual(pi.pattern, expected_intervals)
+        pi = ParametricIntervalGenerator(density=0.5, bias=0.0, swing=0.6)
+        self.assertEqual(len(pi.pattern), 8)
+        # TODO(oconaire): Add tests with different time signatures.
+
         
-class CompositeTest(unittest.TestCase):
+class TestComposite(unittest.TestCase):
     def test_overlap(self):
         eighth = SimpleIntervalGenerator(num_ticks=fourfour.eighth_note, 
             tag="Eighth")
@@ -93,6 +115,7 @@ class CompositeTest(unittest.TestCase):
                 self.assertEqual(len(item[0]), 2)
             else:
                 self.assertEqual(len(item[0]), 1)
+
 
 def main():
     unittest.main()

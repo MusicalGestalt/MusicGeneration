@@ -1,6 +1,7 @@
 """Various sample generator classes."""
 
 import math
+import random
 from . import SAMPLING_RATE
 
 
@@ -81,6 +82,28 @@ class SawtoothWaveGenerator(SampleGenerator):
         return (cycle_position * 2) - 1
 
 
+class GuitarWaveGenerator(SampleGenerator):
+    """A Guitar-string sample generator."""
+    def __init__(self, freq, sampling_rate=SAMPLING_RATE):
+        SampleGenerator.__init__(self, sampling_rate)
+        self._freq = freq
+        self._setup_buffer()
+
+    def _setup_buffer(self):
+        self._bufsize = int(self._sampling_rate / self._freq)
+        assert self._bufsize > 0
+        # TODO(oconaire): We can also initialize this with a squarewave or sawtooth
+        # wave to get a different guitar string sound.
+        self._buffer = [random.uniform(-1.0, 1.0) for i in range(self._bufsize)]
+        self._bufindex = 0;
+
+    def _get(self):
+        value = (self._buffer[self._bufindex] + self._buffer[(self._bufindex+1) % self._bufsize]) / 2.0;
+        self._buffer[self._bufindex] = value;
+        self._bufindex = (self._bufindex + 1) % self._bufsize;
+        return value
+
+
 class DelayedGenerator(SampleGenerator):
     """A delayed sample generator."""
     def __init__(self, source, start_time, sampling_rate=SAMPLING_RATE):
@@ -96,13 +119,15 @@ class DelayedGenerator(SampleGenerator):
 
 class MixerGenerator(SampleGenerator):
     """A sample generator to combines other generators."""
-    def __init__(self, source_list=None, sampling_rate=SAMPLING_RATE):
+    def __init__(self, source_list=None, scaling=1.0, sampling_rate=SAMPLING_RATE):
         SampleGenerator.__init__(self, sampling_rate)
         source_list = [] if source_list is None else source_list
         self._source_list = source_list
+        self._scaling = scaling
 
     def _get(self):
-        return sum([source.__next__() for source in self._source_list])
+        if not self._source_list: return 0.0
+        return self._scaling * sum([source.__next__() for source in self._source_list])
 
     def add(self, source, start_time=None):
         if start_time:

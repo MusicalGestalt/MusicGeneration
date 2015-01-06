@@ -1,5 +1,6 @@
 """These classes form a starting point for simple beat generators."""
 
+import random
 from .. import (fourfour, TimeSignature)
 from collections import deque
 from math import ceil
@@ -63,7 +64,10 @@ class PatternIntervalGenerator(BaseIntervalGenerator):
         self.__pattern = pattern
         measure_length = self.time_signature.ticks_per_measure
         self.__loop_length = ceil(pattern[-1] / measure_length) * measure_length
-        
+
+    @property
+    def pattern(self): return self.__pattern
+
     def step(self, last_beat):
         if last_beat is None:
             self.__index = 0
@@ -75,12 +79,126 @@ class PatternIntervalGenerator(BaseIntervalGenerator):
         return self.__pattern[self.__index] + self.__loop_length * self.__num_cycles
 
 
+class ParametricIntervalGenerator(PatternIntervalGenerator):
+    """
+    A pattern interval generator defined by 4 main parameters:
+        resolution = the number of slots (potential intervals) per beat in a measure.
+            e.g. with resolution == 4, and 4 beats per measure, then we have 16 'slots' for intervals
+        density = the fraction of slots that are intervals (range: 0...1)
+        bias = the difference between the density of the first half and the second (range: -1...1)
+            e.g. a bias of zero would have an equal number of intervals in the first and second
+            halves of a measure.
+        swing = a measure of how concentrated the intervals are on the 'main' beats
+    """
+    def __init__(self, density, bias=None, swing=None, resolution=4, time_signature=fourfour, tag="Parametric"):
+        assert int(resolution) == resolution
+        num_slots = time_signature.beats_per_measure * resolution
+        # This check is in place to prevent expensive computation;
+        # It can be lifted once I implement a more efficient algorithm.
+        assert num_slots <= 16
+        assert density > 0 and density <= 1.0
+        assert swing is None or (0.0 <= swing and swing <= 1.0)
+        num_triggers = int(density * num_slots)
+        assert num_triggers > 0
+        # 'focus' is defined as the opposite of 'swing'
+        focus = None if swing is None else 1.0 - swing
+        focus_weights = self.__get_focus_weights(num_slots)
+        min_focus = sum(sorted(focus_weights)[:num_triggers])
+        max_focus = sum(sorted(focus_weights, reverse=True)[:num_triggers])
+
+        # slots is essentially a binary vector, indicating whether an interval happens.
+        slots = [1] * num_triggers + [0] * (num_slots - num_triggers)
+        assert sum(slots) == num_triggers
+
+        mid = int(num_slots / 2)
+        M = min([num_triggers, num_slots - num_triggers])
+        if (num_slots % 2) == 0:
+            curr_bias = lambda b: (sum(b[mid:]) - sum(b[:mid])) / M
+        else:
+            curr_bias = lambda b: (sum(b[mid+1:]) - sum(b[:mid])) / M
+        # Normalized dot-product of focus_weights and slots
+        curr_focus = lambda b: (sum([a*b for (a,b) in zip(focus_weights, b)]) - min_focus) / max([0.001, max_focus - min_focus])
+
+        best_slots = slots
+        best_score = float('inf')
+        best_candidates = []
+        # Iterate through all possible binary vectors with the chosen density
+        # and determine which ones best match the (bias, focus) metrics
+        # TODO(oconaire): This could be incredibly slow for some parameter choices.
+        # For example, if resolution=8 and density=0.5, we have 32 choose 16 = 601080390
+        # valid vectors to try.
+        while slots:
+            cost = 0.0
+            if bias is not None:
+                cost += abs(bias - curr_bias(slots))
+            if focus is not None:
+                cost += abs(focus - curr_focus(slots))
+
+            if cost < best_score:
+                best_slots = slots
+                best_score = cost
+                best_candidates = []
+            elif cost == best_score:
+                best_candidates.append(slots)
+
+            slots = self.__increment_slots(slots)
+            if not slots: break
+
+        if best_candidates:
+            # We have to choose from several top matches
+            best_candidates.append(best_slots)
+            best_slots = random.choice(best_candidates)
+
+        print(curr_bias(best_slots), curr_focus(best_slots))
+
+        assert (time_signature.ticks_per_beat % resolution) == 0
+        multiplier = time_signature.ticks_per_beat / resolution
+        pattern = [p * multiplier for (p,v) in enumerate(best_slots) if v == 1]
+        print(best_slots)
+        PatternIntervalGenerator.__init__(self, pattern, time_signature=time_signature, tag=tag)
+
+    def __increment_slots(self, slots):
+        # Find rightmost '0'
+        i0 = max([p for (p,v) in enumerate(slots) if v == 0])
+        # Find rightmost '1' (that occurs before rightmost 0)
+        candidates = [p for (p,v) in enumerate(slots) if v == 1 and p < i0]
+        if not candidates: return None
+        i1 = max(candidates)
+        assert slots[i0] == 0
+        assert slots[i1] == 1
+        assert i1 < i0
+        c1 = sum(slots[i1:])
+        c0 = len(slots) - i1 - sum(slots[i1:])
+        new_slots = slots[:i1] + [0] + ([1] * c1) + ([0] * (c0-1))
+        assert len(new_slots) == len(slots)
+        return new_slots
+
+    def __get_focus_weights(self, n):
+        weights = [0] * n;
+        k = n
+        while k > 1:
+            divisor = k
+            for i in range(2, k):
+                if (k % i) == 0:
+                    divisor = i
+                    break
+            assert divisor > 1
+            assert (k % divisor) == 0
+            k = int(k / divisor)
+            for i in range(0, n, k):
+                weights[i] += 1
+        return weights
+
+
+
 class CompositeIntervalGenerator:
     """Given a set of interval generators, it will return the 
     next tick from ANY of the generators.
 
     If two generators have an event on the same tick, the tag 
     field of the tuple will contain both."""
+
+    # TODO(oconaire): Rewrite this to be a BaseIntervalGenerator. 
 
     def __init__(self, *args):
         self.generators = args

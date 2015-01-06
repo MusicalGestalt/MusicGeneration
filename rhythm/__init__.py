@@ -34,6 +34,12 @@ class TimeSignature:
         self.__thirtysecond_note = self.__sixteenth_note // 2
         self.__half_note = self.__quarter_note * 2
         self.__whole_note = self.__ticks_per_measure # a whole note is always 1 measure long!
+        # TODO(remy): if we add an assert here to check that
+        #   assert self.__whole_note == 2 * self.__half_note
+        # It will fail if beats_per_measure != one_beat_note
+        # e.g. 7/8, 3/4 time
+        # Why does a whole note always need to be one measure long?
+        # Why not define it as = 2 * self.__half_note ?
         self.__eighth_note_triplet = self.__quarter_note // 3
         self.__sixteenth_note_triplet = self.__eighth_note // 3
         self.__ticks_per_beat = ticks_per_beat
