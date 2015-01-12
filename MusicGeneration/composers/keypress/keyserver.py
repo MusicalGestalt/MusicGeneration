@@ -2,7 +2,7 @@
 events and publishes them as events.
 
 > s = start_server()
-> t = TestClient()
+> t = SimpleClient()
 > s.register_key(t)
 > t.send("A")
 'A'
@@ -40,13 +40,13 @@ class Handler(socketserver.BaseRequestHandler):
         if data:
             self.server.send_key_event(data.decode("ASCII"))
 @EventReceiver("key", "do_key")
-class TestClient:
+class SimpleClient:
     def __init__(self, host="localhost", port=8888):
         self.__sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.__host = host
         self.__port = port
 
-    def do_key(self, key):
+    def do_key(self, sender, key):
         print(key)
 
     def send(self, char):
