@@ -58,3 +58,4 @@ target/
 
 bin
 pyvenv.cfg
+demo_music*.wav
