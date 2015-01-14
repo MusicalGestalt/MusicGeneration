@@ -1,7 +1,9 @@
 """Various sample generator classes."""
 
+import array
 import math
 import random
+import wave
 from . import SAMPLING_RATE
 
 
@@ -137,3 +139,45 @@ class MixerGenerator(SampleGenerator):
         else:
             self._source_list.append(source)
 
+
+class WaveFileGenerator(SampleGenerator):
+    """A sample generator made from a WAV file."""
+    def __init__(self, filename, sampling_rate=SAMPLING_RATE):
+        SampleGenerator.__init__(self, sampling_rate)
+        self._filename = filename
+        self._wf = wave.open(self._filename, 'rb')
+        (nchannels, sample_width, framerate, nframes, comptype, compname) = self._wf.getparams()
+        assert framerate == self._sampling_rate
+        assert nchannels in [1, 2]
+        assert sample_width == 2
+        self._stereo = (nchannels == 2)
+        self._scaling = 2.0 ** ((sample_width * 8) - 1)
+        self.reset()
+
+    def reset(self):
+        # TODO(oconaire): Instead of always reading from a WAV file, we might
+        # just buffer the whole file in memory. Perhaps using a different class:
+        # e.g. WaveSampleGenerator
+        self._wf.rewind()
+        self._nsamples = self._wf.getnframes()
+        self._index = -1
+        self._buffer = []
+
+    def _get(self):
+        if self._nsamples <= 0:
+            return 0.0
+        if self._index >= (len(self._buffer) - 1):
+            # Read (at most) one second of data
+            self._index = -1
+            raw_data = array.array("h")
+            raw_string = self._wf.readframes(self._sampling_rate)
+            raw_data.fromstring(raw_string)
+            raw_values = raw_data.tolist()
+            if self._stereo:
+                # Drop every second value, so that a mono signal is returned
+                raw_values = [r for (i,r) in enumerate(raw_values) if (i%2)==0]
+            self._buffer = [v / self._scaling for v in raw_values]
+
+        self._nsamples -= 1
+        self._index += 1
+        return self._buffer[self._index]

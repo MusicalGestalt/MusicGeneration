@@ -1,5 +1,6 @@
 """Unit tests for sample generators."""
 
+import os
 import unittest
 from . import *
 from . import generators
@@ -51,6 +52,26 @@ class TestSampleGeneration(unittest.TestCase):
         data = delay_gen.get(SAMPLING_RATE)
         self.assertEqual(min(data), 0)
         self.assertEqual(max(data), 0)
+
+    def test_wavefile_generator(self):
+        # TODO: Obviously crappy test. I'm not sure how to specify a relative path so that
+        # this test wav file is found.
+        filename = "C:\\Users\\oconaire\\Documents\\GitHub\\MusicGeneration\\MusicGeneration\\wav_data\\drums\\DR1-0.WAV"
+        if os.path.exists(filename):
+            wavefile_gen = generators.WaveFileGenerator(filename)
+            data = wavefile_gen.get(SAMPLING_RATE)
+            print("Data length = %d" % len(data))
+            zcr = lambda d: sum([(x*y) < 0 for (x,y) in zip(d[:-1], d[1:])])
+            z0 = zcr(data)
+            print("ZCR(data) = %d" % z0)
+            self.assertTrue(z0 > 100)
+            last_sample = int(0.037 * SAMPLING_RATE)
+            z1 = zcr(data[last_sample:])
+            self.assertEqual(z1, 0)
+            self.assertEqual(min(data[last_sample:]), 0)
+            self.assertEqual(max(data[last_sample:]), 0)
+            self.assertLess(min(data[:last_sample]), -0.25)
+            self.assertGreater(max(data[:last_sample]), 0.25)
 
 
 class TestEnvelopes(unittest.TestCase):
