@@ -20,6 +20,8 @@ __server = None
 
 def start_server(host="localhost", port=8888):
     global __thread, __server
+    if __server:
+        return __server
     __server = KeystrokeServer((host, port), Handler)
     __thread = threading.Thread(target=__server.serve_forever)
     __thread.daemon = True
