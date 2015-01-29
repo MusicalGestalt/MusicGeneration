@@ -23,6 +23,50 @@ class Instrument(generators.SampleGenerator):
       self._next_phrase = phrase
 
 
+
+class GeneratorInstrument(Instrument):
+    """Base class for Instruments whose notes produce independent generators."""
+    def __init__(self, bpm, phrase=None, sampling_rate=SAMPLING_RATE):
+        Instrument.__init__(self, bpm, phrase, sampling_rate)
+        self._source = None
+
+    def _add_phrase_to_mix(self, phrase):
+        assert phrase
+        if not self._source:
+            self._source = generators.MixerGenerator()
+        play_time = self._source.getTime()
+        self._update_time = play_time + phrase.phrase_endtime_in_seconds(self._bpm)
+        print("Adding notes, time=%g, update_time=%g" % (play_time, self._update_time))
+        convert_tick_to_seconds = lambda _tick: phrase.get_time_signature().convert_tick_to_seconds(_tick, self._bpm)
+        for note in self._current_phrase.notes:
+            generator = self._get_generator(note, convert_tick_to_seconds)
+            if not generator: continue
+            start_time = convert_tick_to_seconds(note.start_tick)
+            self._source.add(generator, start_time=(play_time + start_time))
+
+        # TODO: Think about this some more: By looping on an integer number of samples, we might have
+        # drift between this and a source that kept full float precision. It will only be off by <1 sample for
+        # each phrase, which is pretty small, but we could add back that sample every Nth round.
+        self._remaining_samples = int(convert_tick_to_seconds(self._current_phrase.phrase_endtime()) * self._sampling_rate)
+
+    def _get_generator(self, note, tick_to_seconds):
+        raise Exception("Not implemented.")
+
+    def _get(self):
+        if not self._source:
+            self._add_phrase_to_mix(self._current_phrase)
+
+        play_time = self._source.getTime()
+        if play_time >= self._update_time:
+            if self._next_phrase:
+                self._current_phrase = self._next_phrase
+                self._next_phrase = None
+            self._add_phrase_to_mix(self._current_phrase)
+        return self._source.__next__()
+
+
+
+
 def get_synth_note_generator(wave_class, freq, duration, sampling_rate):
     synth_note = wave_class(freq, sampling_rate)
     print("Make note: freq=%g, duration=%g" % (freq, duration))
@@ -35,38 +79,30 @@ def get_synth_note_generator(wave_class, freq, duration, sampling_rate):
     return enveloped_note
 
 
-class WaveInstrument(Instrument):
+class WaveInstrument(GeneratorInstrument):
     def __init__(self, bpm, phrase=None, sampling_rate=SAMPLING_RATE, wave_class=generators.SineWaveGenerator):
-        Instrument.__init__(self, bpm, phrase, sampling_rate)
+        GeneratorInstrument.__init__(self, bpm, phrase, sampling_rate)
         self._wave_class = wave_class
-        self._setup_sample_source()
 
-    def _setup_sample_source(self):
-        self._source = generators.MixerGenerator()
-        self._remaining_samples = 0
-        if not self._current_phrase: return
-        convert_tick_to_seconds = lambda _tick: self._current_phrase.get_time_signature().convert_tick_to_seconds(_tick, self._bpm)
-        for note in self._current_phrase.notes:
-            # TODO(ciaran): Handle note volume.
-            freq = ToneToFrequency(note.tone)
-            start_time = convert_tick_to_seconds(note.start_tick)
-            duration = convert_tick_to_seconds(note.duration)
-            self._source.add(get_synth_note_generator(self._wave_class, freq, duration, self._sampling_rate),
-                             start_time=start_time)
-        # TODO: Think about this some more: By looping on an integer number of samples, we might have
-        # drift between this and a source that kept full float precision.
-        self._remaining_samples = int(convert_tick_to_seconds(self._current_phrase.phrase_endtime()) * self._sampling_rate)
+    def _get_generator(self, note, tick_to_seconds):
+        freq = ToneToFrequency(note.tone)
+        duration = tick_to_seconds(note.duration)
+        # TODO(ciaran): Handle note volume (could simply enclose in a volume envelope)
+        return get_synth_note_generator(self._wave_class, freq, duration, self._sampling_rate)
 
-        # TODO(oconaire): We still have the issue that notes that are trailing from the last phrase, do not get heard in the
-        # next phrase. This creates an artificial cut between phrases. Ideally, the mixer generator keeps getting new notes
-        # added to it.
 
-    def _get(self):
-        if self._remaining_samples <= 0:
-            if self._next_phrase:
-                self._current_phrase = self._next_phrase
-                self._next_phrase = None
-            self._setup_sample_source()
+class TriggerPadInstrument(GeneratorInstrument):
+    """Trigger Pad where each note triggers a WAV file to play."""
+    def __init__(self, note_mapping, bpm, phrase=None, sampling_rate=SAMPLING_RATE):
+        GeneratorInstrument.__init__(self, bpm, phrase, sampling_rate)
+        # dictionary mapping a note number to a WAV filename
+        assert type(note_mapping) == dict        
+        self._note_mapping = note_mapping
 
-        self._remaining_samples -= 1
-        return self._source.__next__()
+    def _get_generator(self, note, tick_to_seconds):
+        # TODO(ciaran): Handle note volume (could simply enclose in a volume envelope)
+        note_num = note.tone
+        if note_num not in self._note_mapping:
+            return None
+        return generators.WaveFileGenerator(self._note_mapping[note_num], self._sampling_rate)
+

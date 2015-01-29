@@ -21,6 +21,10 @@ class SampleGenerator:
         self._sample_time = 1.0 / sampling_rate
         # _time represents the time of the last sample generated
         self._time = -self._sample_time
+        # Has the envelope completed (i.e. will it be zero hereafter)?
+        # Mark as True when the generator is finished producing data
+        # and will return 0.0 always.
+        self._finished = False
 
     def __next__(self):
         self._time += self._sample_time
@@ -37,6 +41,10 @@ class SampleGenerator:
         if num_samples == 0: return []
         assert num_samples > 0
         return [self.__next__() for _ in range(num_samples)]
+
+    def getTime(self):
+        """Returns the time of the next sample."""
+        return self._time + self._sample_time
 
 
 class ConstantGenerator(SampleGenerator):
@@ -127,6 +135,8 @@ class MixerGenerator(SampleGenerator):
         self._source_list = source_list
         self._scaling = scaling
 
+    # TODO(oconaire): Include a MarkFinished() method in Generator, which will tell listeners
+    # that it's being marked as finished. That way, the mixer can remove it.
     def _get(self):
         if not self._source_list: return 0.0
         return self._scaling * sum([source.__next__() for source in self._source_list])
@@ -135,7 +145,7 @@ class MixerGenerator(SampleGenerator):
         if start_time:
             assert start_time > 0
             self._source_list.append(
-                    DelayedGenerator(source, start_time, self._sampling_rate))
+                    DelayedGenerator(source, start_time - self.getTime(), self._sampling_rate))
         else:
             self._source_list.append(source)
 
@@ -162,16 +172,18 @@ class WaveFileGenerator(SampleGenerator):
         self._nsamples = self._wf.getnframes()
         self._index = -1
         self._buffer = []
+        self._finished = False
 
     def _get(self):
         if self._nsamples <= 0:
+            self._finished = True
             return 0.0
         if self._index >= (len(self._buffer) - 1):
             # Read (at most) one second of data
             self._index = -1
             raw_data = array.array("h")
             raw_string = self._wf.readframes(self._sampling_rate)
-            raw_data.fromstring(raw_string)
+            raw_data.frombytes(raw_string)
             raw_values = raw_data.tolist()
             if self._stereo:
                 # Drop every second value, so that a mono signal is returned

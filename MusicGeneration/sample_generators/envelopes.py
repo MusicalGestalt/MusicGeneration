@@ -9,8 +9,6 @@ class Envelope(SampleGenerator):
     def __init__(self, source, sampling_rate=SAMPLING_RATE):
         SampleGenerator.__init__(self, sampling_rate)
         self._source = source.__iter__()
-        # Has the envelope completed (i.e. will it be zero hereafter)
-        self._finished = False
 
     def _get(self):
         # Returns early if finished, which is efficient but will no longer
