@@ -46,4 +46,22 @@ class KeyboardCapturer:
             self.send_interval_event(self.__captures)
             self.__capture_started = False
 
+@EventReceiver("interval", "new_interval")
+class KeyboardSequenceGenerator:
+    def __init__(self, capturer):
+        self.__capture = capturer
+        self.register_interval(capturer)
+        self.__intervals = None
+        self.__ticker = -1
+
+    def new_interval(self, sender, sequence):
+        self.__intervals = sequence
+
+    def step(self, last_beat=0):
+        if self.__intervals == None:
+            return [0]
+        self.__ticker += 1
+        self.__ticker %= len(self.__intervals)
+        return self.__intervals[self.__ticker][1]
+        
 
