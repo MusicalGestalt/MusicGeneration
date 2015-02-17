@@ -8,20 +8,26 @@ from ..clock import Clock
 from ..events import EventReceiver, EventSender
 from .keyserver import start_server, stop_server
 
+def keyfilter(*args):
+    return lambda x: x in args
+
 @EventSender("interval")
 @EventReceiver("tick", "do_tick")
 @EventReceiver("key", "do_key")
 class KeyboardCapturer:
     def __init__(self, clock, server, time_signature=fourfour, 
-        capture_idle_time=None):
+        capture_idle_time=None, filt=None):
 
         if capture_idle_time is None:
             capture_idle_time = time_signature.whole_note
+        if filt is None:
+            filt = lambda x: True
         self.__capture_started = False
         self.__clock = clock
         self.__start_tick = 0
         self.__captures = []
         self.__idle = capture_idle_time
+        self.__filt = filt
         self.register_key(server)
         self.register_tick(clock)
 
@@ -36,8 +42,9 @@ class KeyboardCapturer:
 
     def do_key(self, sender, key):
         if self.__capture_started:
-            self.__captures += [(key, self.__delta)]
-            self.__start_tick = self.__clock.current_tick
+            if self.__filt(key):
+                self.__captures += [(key, self.__delta)]
+                self.__start_tick = self.__clock.current_tick
         else:
             self.__prep_capture()
 
@@ -58,7 +65,7 @@ class KeyboardSequenceGenerator:
         self.__intervals = sequence
 
     def step(self, last_beat=0):
-        if self.__intervals == None:
+        if self.__intervals is None:
             return [0]
         self.__ticker += 1
         self.__ticker %= len(self.__intervals)

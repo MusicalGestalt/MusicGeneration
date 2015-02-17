@@ -7,7 +7,8 @@ class TestSends(unittest.TestCase):
     def setUp(self):
         self.clock = FakeClock("test")
         self.server = FakeServer(self.clock)
-        self.capture = KeyboardCapturer(self.clock, self.server)
+        self.capture = KeyboardCapturer(self.clock, self.server,
+            filt=keyfilter('A'))
         self.catcher = IntervalCatcher()
         self.catcher.register_interval(self.capture)
         self.clock.increment((2 * DEFAULT_SENDS) * DEFAULT_TICKS_BETWEEN)
@@ -21,7 +22,7 @@ class TestSends(unittest.TestCase):
 
     def test_keys(self):
         sg = self.seqgen
-        sg.new_interval(self, [('A', 43), ('B', 64)])
+        sg.new_interval(self, [('A', 43), ('A', 64)])
         acc = []
         for i in range(4):
             acc += [sg.step()]
