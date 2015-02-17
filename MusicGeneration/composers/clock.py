@@ -17,6 +17,9 @@ class BasicClock():
         for loop in range(loops):
             self.send_tick_event(self.__tick)
             self.__tick += 1
+    @property
+    def current_tick(self):
+        return self.__tick
 
 
 class Clock(threading.Thread, BasicClock):

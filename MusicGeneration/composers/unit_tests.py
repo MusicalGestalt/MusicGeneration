@@ -129,6 +129,5 @@ class TestObservableAndObservers(unittest.TestCase):
         self.assertTrue(self.handler.got_event)
         self.assertEqual(self.handler.details, value)
 
-
 def main():
     unittest.main()
