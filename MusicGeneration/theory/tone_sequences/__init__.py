@@ -100,6 +100,16 @@ class RandomWalkMelodyGenerator(MelodyGenerator):
     max_step = property(**max_step())
 
 
+class ConstantMelodyGenerator(MelodyGenerator):
+    """Given a note, output this note eternally."""
+    def __init__(self, note):
+        assert type(note) == int
+        MelodyGenerator.__init__(self, key=note)
+
+    def _get(self):
+        return self.key
+
+
 class CyclicMelodyGenerator(MelodyGenerator):
     """Given a set of notes, this iterator cycles through them."""
     def __init__(self, tone_list, key=None):

@@ -98,7 +98,7 @@ class SimpleComposer(BaseComposer):
         note_list = []
         for tick in tick_list:
             tone = self._melody_generator.__next__()
-            if (tick + duration) < past_max_tick:
+            if (tick + duration) <= past_max_tick:
                 note_list.append(Note(tone, tick, duration))
             else:
                 # Truncate last note

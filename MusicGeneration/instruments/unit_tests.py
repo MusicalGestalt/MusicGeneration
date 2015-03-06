@@ -1,6 +1,7 @@
 """Unit tests for instrument libraries."""
 
 import os
+import platform
 import unittest
 
 from MusicGeneration.music import Phrase, Note
@@ -21,6 +22,36 @@ def create_phrase(tone_list, time_signature):
     return Phrase(note_list, time_signature)
 
 
+def PlaySoundIfWindows(filename):
+    """Plays a WAV file."""
+    my_os = platform.system()
+    if my_os == "Windows":
+        import winsound
+        winsound.PlaySound(filename, winsound.SND_FILENAME)
+        # winsound.PlaySound(filename, winsound.SND_FILENAME | winsound.SND_ASYNC)
+    elif my_os = "Linux":
+        pass
+        # To implement, see:
+        # http://stackoverflow.com/questions/307305/play-a-sound-with-python/311634#311634
+        # from wave import open as waveOpen
+        # from ossaudiodev import open as ossOpen
+        # s = waveOpen('tada.wav','rb')
+        # (nc,sw,fr,nf,comptype, compname) = s.getparams( )
+        # dsp = ossOpen('/dev/dsp','w')
+        # try:
+        #   from ossaudiodev import AFMT_S16_NE
+        # except ImportError:
+        #   if byteorder == "little":
+        #     AFMT_S16_NE = ossaudiodev.AFMT_S16_LE
+        #   else:
+        #     AFMT_S16_NE = ossaudiodev.AFMT_S16_BE
+        # dsp.setparameters(AFMT_S16_NE, nc, fr)
+        # data = s.readframes(nf)
+        # s.close()
+        # dsp.write(data)
+        # dsp.close()
+
+
 # TODO(oconaire) add tests for changing the phrases mid-way through playing
 # i.e. using the EventReceiver/Phrase-Listener functionality.
 
@@ -37,8 +68,10 @@ class TestWaveInstrument(unittest.TestCase):
         end_time = phrase.phrase_endtime_in_seconds(bpm)
         data = sine_instrument.get(int(SAMPLING_RATE * end_time * num_loops))
 
-        with wavefile.WaveFile("test_sine_instrument1.wav") as wave_file:
+        filename = "test_sine_instrument1.wav"
+        with wavefile.WaveFile(filename) as wave_file:
             wave_file.writeData(data)
+        PlaySoundIfWindows(filename)
 
         L = len(data)
         note_length = int(L / 8 / num_loops)
@@ -60,8 +93,10 @@ class TestWaveInstrument(unittest.TestCase):
         end_time = phrase.phrase_endtime_in_seconds(bpm)
         data = sawtooth_instrument.get(int(SAMPLING_RATE * end_time * num_loops))
 
-        with wavefile.WaveFile("test_sawtooth_instrument1.wav") as wave_file:
+        filename = "test_sawtooth_instrument1.wav"
+        with wavefile.WaveFile(filename) as wave_file:
             wave_file.writeData(data)
+        PlaySoundIfWindows(filename)
 
         note_length = int(len(data) / 8 / num_loops)
         for i in range(8 * num_loops):
@@ -85,8 +120,10 @@ class TestTriggerPadInstrument(unittest.TestCase):
         end_time = phrase.phrase_endtime_in_seconds(bpm)
         data = instrument.get(int(SAMPLING_RATE * end_time * num_loops))
 
-        with wavefile.WaveFile("test_triggerpad_instrument1.wav") as wave_file:
+        filename = "test_triggerpad_instrument1.wav"
+        with wavefile.WaveFile(filename) as wave_file:
             wave_file.writeData(data)
+        PlaySoundIfWindows(filename)
 
         L = len(data)
         note_length = int(L / 8 / num_loops)

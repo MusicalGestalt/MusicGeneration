@@ -79,6 +79,7 @@ class TestSimpleComposer(unittest.TestCase):
             self.assertEqual(note.duration, fourfour.eighth_note)
 
 
+
 # === Tests for Event Sending/Handling ===
 
 @EventReceiver("test", "event_handler")
