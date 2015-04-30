@@ -29,7 +29,7 @@ def PlaySoundIfWindows(filename):
         import winsound
         winsound.PlaySound(filename, winsound.SND_FILENAME)
         # winsound.PlaySound(filename, winsound.SND_FILENAME | winsound.SND_ASYNC)
-    elif my_os = "Linux":
+    elif my_os == "Linux":
         pass
         # To implement, see:
         # http://stackoverflow.com/questions/307305/play-a-sound-with-python/311634#311634

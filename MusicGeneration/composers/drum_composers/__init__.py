@@ -63,6 +63,7 @@ DEFAULT_DRUMS = {
 class DrumComposer(BaseComposer):
     """Base class for Composers that create drum music."""
     def __init__(self, drum_type_mapping=None):
+        BaseComposer.__init__(self)
         # TODO(oconaire): Finish work on this class
         if drum_type_mapping is None:
           self.note_to_drum_type = DEFAULT_DRUMS
@@ -71,6 +72,8 @@ class DrumComposer(BaseComposer):
         # Setup the inverse mapping: drum_type --> note_num
         self.drum_type_to_notes = {}
         for (note, drum_type) in self.note_to_drum_type.items():
+          if type(drum_type) == tuple:
+            drum_type = drum_type[0]
           if drum_type in self.drum_type_to_notes:
             self.drum_type_to_notes[drum_type].append(note)
           else:
@@ -82,12 +85,24 @@ class DrumComposer(BaseComposer):
         return self.drum_type_to_notes[drum_type][selection]
 
 
-class SimpleDrumComposer(SimpleComposer, DrumComposer):
+class BasicDrumComposer(DrumComposer):
+  def __init__(self, interval_generator, drum_type, drum_type_mapping=None, time_signature=fourfour):
+    DrumComposer.__init__(self, drum_type_mapping)
+    drum_note = self.getDrumNote(drum_type)
+    melody_generator = ConstantMelodyGenerator(drum_note)
+    self._composer = SimpleComposer(interval_generator, melody_generator,
+                              default_time_sig=time_signature, default_duration=time_signature.eighth_note)
+    assert self._composer
+
+  def _get(self):
+    print("Called _get! BasicDrumComposer = ", self)
+    # REAL HACK! SimpleComposer doesn't keep track of time otherwise
+    self._composer._current_tick = self._current_tick
+    return self._composer._get()
+
+
+class SimpleDrumComposer(BasicDrumComposer):
     def __init__(self, pattern, drum_type, drum_type_mapping=None, time_signature=fourfour):
-        DrumComposer.__init__(self, drum_type_mapping)
         interval_generator = PatternIntervalGenerator(pattern, time_signature=time_signature)
-        drum_note = self.getDrumNote(drum_type)
-        melody_generator = ConstantMelodyGenerator(drum_note)
-        SimpleComposer.__init__(self, interval_generator, melody_generator,
-                                default_time_sig=time_signature, default_duration=time_signature.eighth_note)
+        BasicDrumComposer.__init__(self, interval_generator, drum_type, drum_type_mapping, time_signature)
 

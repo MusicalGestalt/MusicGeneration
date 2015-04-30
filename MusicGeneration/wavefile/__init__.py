@@ -42,6 +42,7 @@ class WaveFile:
         data should be a list of floats in the range -1.0 .. 1.0
         Values outside this range will be clipped"""
         # Hard-coded to use signed-short data-type
+        assert self._wavefile
         byte_data = array.array("h", [scale_and_clip_data(d, self._scaling) for d in data])
         self._wavefile.writeframesraw(byte_data.tobytes())
         if correct_nframes:
@@ -56,7 +57,11 @@ class WaveFile:
         return self
 
     def __exit__(self, type, value, traceback):
+        self.close()
+
+    def close(self):
         self._wavefile.close()
+        self._wavefile = None
 
 
 def test():

@@ -88,7 +88,7 @@ class ParametricIntervalGenerator(PatternIntervalGenerator):
         bias = the difference between the density of the first half and the second (range: -1...1)
             e.g. a bias of zero would have an equal number of intervals in the first and second
             halves of a measure.
-        swing = a measure of how concentrated the intervals are on the 'main' beats
+        swing = a measure of how concentrated the intervals are on the 'main' beats (0..1)
     """
     def __init__(self, density, bias=None, swing=None, resolution=4, time_signature=fourfour, tag="Parametric"):
         assert int(resolution) == resolution
@@ -112,10 +112,13 @@ class ParametricIntervalGenerator(PatternIntervalGenerator):
 
         mid = int(num_slots / 2)
         M = min([num_triggers, num_slots - num_triggers])
-        if (num_slots % 2) == 0:
-            curr_bias = lambda b: (sum(b[mid:]) - sum(b[:mid])) / M
+        if M == 0:
+            curr_bias = lambda x: 0*x
         else:
-            curr_bias = lambda b: (sum(b[mid+1:]) - sum(b[:mid])) / M
+            if (num_slots % 2) == 0:
+                curr_bias = lambda b: (sum(b[mid:]) - sum(b[:mid])) / M
+            else:
+                curr_bias = lambda b: (sum(b[mid+1:]) - sum(b[:mid])) / M
         # Normalized dot-product of focus_weights and slots
         curr_focus = lambda b: (sum([a*b for (a,b) in zip(focus_weights, b)]) - min_focus) / max([0.001, max_focus - min_focus])
 
@@ -155,6 +158,7 @@ class ParametricIntervalGenerator(PatternIntervalGenerator):
         multiplier = time_signature.ticks_per_beat / resolution
         pattern = [p * multiplier for (p,v) in enumerate(best_slots) if v == 1]
         print(best_slots)
+        self._pattern = best_slots
         PatternIntervalGenerator.__init__(self, pattern, time_signature=time_signature, tag=tag)
 
     def __increment_slots(self, slots):

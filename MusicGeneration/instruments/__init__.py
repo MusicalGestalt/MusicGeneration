@@ -1,5 +1,6 @@
 """Instrument Library: Classes that produce wave data from musical Phrases."""
 
+import os
 from MusicGeneration.composers.events import EventReceiver
 from MusicGeneration.rhythm import TimeSignature
 from MusicGeneration.music import Phrase
@@ -22,6 +23,18 @@ class Instrument(generators.SampleGenerator):
       """After the current phrase has played, this phrase will be played."""
       self._next_phrase = phrase
 
+
+@EventReceiver("phrase", "print_phrase")
+class PrinterInstrument(Instrument):
+    """Instruments that just prints the phrases it gets."""
+    def __init__(self, name):
+        Instrument.__init__(self, bpm=0)
+        self._name = name
+    
+    def print_phrase(self, sender, phrase):
+        print("[%s] received phrases from %s" % (self._name, str(sender)))
+        for note in phrase.notes:
+            print("  %d-->%d" % (note.start_tick, note.tone))
 
 
 class GeneratorInstrument(Instrument):
@@ -53,6 +66,10 @@ class GeneratorInstrument(Instrument):
         raise Exception("Not implemented.")
 
     def _get(self):
+        if self._current_phrase is None:
+            self._current_phrase = self._next_phrase
+            self._next_phrase = None
+
         if not self._source:
             self._add_phrase_to_mix(self._current_phrase)
 
@@ -105,4 +122,13 @@ class TriggerPadInstrument(GeneratorInstrument):
         if note_num not in self._note_mapping:
             return None
         return generators.WaveFileGenerator(self._note_mapping[note_num], self._sampling_rate)
+
+
+class DefaultDrumkitInstrument(TriggerPadInstrument):
+  """Drumkit Trigger Pad where each note triggers a WAV file to play."""
+  def __init__(self, bpm, phrase=None, sampling_rate=SAMPLING_RATE):
+    note_mapping = {}
+    for (index, note_num) in enumerate(range(0, 42)):
+        note_mapping[note_num] = os.path.join("MusicGeneration", "wav_data", "drums", "DR1-%d.WAV" % index)
+    TriggerPadInstrument.__init__(self, note_mapping, bpm, phrase=phrase, sampling_rate=sampling_rate)
 

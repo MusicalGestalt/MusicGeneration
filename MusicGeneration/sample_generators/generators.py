@@ -92,6 +92,28 @@ class SawtoothWaveGenerator(SampleGenerator):
         return (cycle_position * 2) - 1
 
 
+class SweepWaveGenerator(SampleGenerator):
+    """A Frequency-Sweep sample generator."""
+    def __init__(self, freq1, freq2, interval, mode="linear", start_phase=0.0, sampling_rate=SAMPLING_RATE):
+        SampleGenerator.__init__(self, sampling_rate)
+        self._freq1 = freq1
+        self._freq2 = freq2
+        self._interval = interval
+        self._mode = mode
+        self._b = math.log(self._freq2/self._freq1) / self._interval
+        self._a = 2 * math.pi * self._freq1 / self._b
+        self._a0 = -self._a + start_phase
+
+    def _get(self):
+        if self._mode == "linear":
+            phase = 2 * math.pi * self._time * (self._freq1 + (self._freq2 - self._freq1) * self._time / self._interval / 2)
+        elif self._mode == "exp":
+            phase = self._a0 + self._a * math.exp(self._b * self._time)
+        else:
+            assert False
+        return math.sin(phase)
+
+
 class GuitarWaveGenerator(SampleGenerator):
     """A Guitar-string sample generator."""
     def __init__(self, freq, sampling_rate=SAMPLING_RATE):
@@ -134,11 +156,15 @@ class MixerGenerator(SampleGenerator):
         source_list = [] if source_list is None else source_list
         self._source_list = source_list
         self._scaling = scaling
+        if type(self._scaling) == list:
+            assert len(scaling) == len(source_list)
 
     # TODO(oconaire): Include a MarkFinished() method in Generator, which will tell listeners
     # that it's being marked as finished. That way, the mixer can remove it.
     def _get(self):
         if not self._source_list: return 0.0
+        if type(self._scaling) == list:
+            return sum([volume * source.__next__() for (volume, source) in zip(self._scaling, self._source_list)])
         return self._scaling * sum([source.__next__() for source in self._source_list])
 
     def add(self, source, start_time=None):

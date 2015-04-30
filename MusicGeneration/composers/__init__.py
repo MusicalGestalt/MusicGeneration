@@ -75,6 +75,8 @@ class SimpleComposer(BaseComposer):
         duration = self._default_duration
         past_max_tick = time_sig.ticks_per_measure
 
+        print("_get called in SimpleComposer: ", self)
+
         # TODO(oconaire): This code could be simplified by subtracting the tick-shift at the end.
 
         # TODO(oconaire): It's not clear what should happen if we have a note that starts in
@@ -84,16 +86,20 @@ class SimpleComposer(BaseComposer):
         tick_list = []
         tick_list += self._interval_buffer
         self._interval_buffer = []
+        print("starting ticks: ", tick_list, self._current_tick)
         while True:
             (tag, tick) = self._interval_generator.__next__()
             # Normalize time so that the phrase starts at zero
             corrected_tick = tick - self._current_tick
             if corrected_tick < past_max_tick:
                 tick_list.append(corrected_tick)
+                assert len(tick_list) < 1000
             else:
                 # Save the generated interval for the next phrase
-                self._interval_buffer = [tick - self._current_tick - time_sig.ticks_per_measure]
+                self._interval_buffer = [corrected_tick - time_sig.ticks_per_measure]
                 break
+        assert len(self._interval_buffer) == 1
+        print("final ticks: ", tick_list, self._interval_buffer[0]+past_max_tick, past_max_tick)
 
         note_list = []
         for tick in tick_list:
